@@ -5,7 +5,7 @@ export const microfeCourseMeta = {
   "level": "入门 → 进阶",
   "icon": "🧩",
   "color": "#ffd6a5",
-  "practiceCategory": "microfe",
+  "practiceCategory": "micro-frontend",
   "chapters": [
     {
       "key": "intro",

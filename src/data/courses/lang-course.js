@@ -5,7 +5,7 @@ export const langCourseMeta = {
   "level": "进阶 → 造轮子",
   "icon": "🧩",
   "color": "#8b5cf6",
-  "practiceCategory": "language",
+  "practiceCategory": "javascript",
   "chapters": [
     {
       "key": "lex",

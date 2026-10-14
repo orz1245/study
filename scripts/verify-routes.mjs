@@ -185,6 +185,17 @@ for (const path of ALL_URLS) {
   // —— 无框架残留 ——
   if (NOFRAME_RE.test(html)) report(`FRAME ${path} 仍有 Vue 挂载点或 module bundle 引用`)
 
+  // 7. 站内链接完整性校验（防止死链导致 Google Search Console 报 404 抓取错误）
+  for (const mLink of html.matchAll(/href="(\/[^"#?]*)"/g)) {
+    const href = mLink[1]
+    if (href.startsWith('//')) continue
+    const asDir = join(DIST, href.replace(/^\//, ''), 'index.html')
+    const asFile = join(DIST, href.replace(/^\//, ''))
+    if (!existsSync(asDir) && !existsSync(asFile)) {
+      report(`LINK_BROKEN ${path} 存在指向不存在路径的死链 href="${href}"`)
+    }
+  }
+
   // —— 代码块复制：凡是渲染了复制按钮的页面，样式与脚本必须同时到位 ——
   // 少任何一样都会退化成「按钮跑到代码上方」或「点了没反应」，
   // 而这正是拆掉 Vue 之后踩过的坑，所以固化成构建期断言。

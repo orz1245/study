@@ -5,7 +5,7 @@ export const advCourseMeta = {
   "level": "硬核 → 系统",
   "icon": "⚙️",
   "color": "#0ea5e9",
-  "practiceCategory": "algorithm",
+  "practiceCategory": "javascript",
   "chapters": [
     {
       "key": "buf",

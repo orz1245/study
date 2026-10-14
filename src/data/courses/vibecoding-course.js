@@ -5,7 +5,7 @@ export const vibeCourseMeta = {
   "level": "入门 → 进阶",
   "icon": "🚀",
   "color": "#ec4899",
-  "practiceCategory": "vibecoding",
+  "practiceCategory": "browser-engineering",
   "chapters": [
     {
       "key": "concept",

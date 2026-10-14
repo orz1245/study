@@ -5,7 +5,7 @@ export const viteCourseMeta = {
   "level": "入门 → 进阶",
   "icon": "⚡",
   "color": "#646cff",
-  "practiceCategory": "vite",
+  "practiceCategory": "build",
   "chapters": [
     {
       "key": "intro",

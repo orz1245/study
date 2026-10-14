@@ -5,7 +5,7 @@ export const monorepoCourseMeta = {
   "level": "入门 → 进阶",
   "icon": "📦",
   "color": "#f97316",
-  "practiceCategory": "monorepo",
+  "practiceCategory": "build",
   "chapters": [
     {
       "key": "basic",

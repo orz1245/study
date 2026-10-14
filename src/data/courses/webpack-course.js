@@ -5,7 +5,7 @@ export const webpackCourseMeta = {
   "level": "入门 → 进阶",
   "icon": "📦",
   "color": "#8ed1fc",
-  "practiceCategory": "webpack",
+  "practiceCategory": "build",
   "chapters": [
     {
       "key": "intro",

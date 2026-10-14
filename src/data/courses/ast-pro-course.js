@@ -5,7 +5,7 @@ export const astProCourseMeta = {
   "level": "入门 → 实战",
   "icon": "🌿",
   "color": "#22c55e",
-  "practiceCategory": "algorithm",
+  "practiceCategory": "browser-engineering",
   "chapters": [
     {
       "key": "intro",

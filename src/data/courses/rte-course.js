@@ -5,7 +5,7 @@ export const rteCourseMeta = {
   "level": "进阶 → 前端核心",
   "icon": "📝",
   "color": "#10b981",
-  "practiceCategory": "frontend",
+  "practiceCategory": "browser-engineering",
   "chapters": [
     {
       "key": "basic",
