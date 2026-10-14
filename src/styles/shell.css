@@ -60,7 +60,8 @@ nav.top .wrap { padding: 0 32px }
 /* sticky 导航高 64px：锚点跳转时标题要停在导航下方，而不是被它盖住 */
 h1, h2, h3 { scroll-margin-top: 80px }
 
-/* 页脚只剩一行版权（2026-10-07 定稿）：不要链接、不要栏目、不要简介。 */
+/* 页脚只剩一行版权（2026-10-07 定稿：不要栏目、不要简介）。
+   2026-10-15 用户要求：站名链回本站 + GitHub 仓库 SVG 图标链接。 */
 .colophon {
   /* 页脚通栏（2026-10-07 用户要求：宽度占满整个浏览器），投影随之全宽，
      版权行居中；与页头一样是全宽元素。 */
@@ -69,6 +70,13 @@ h1, h2, h3 { scroll-margin-top: 80px }
   text-align: center;
   box-shadow: 0 -1px 10px rgba(28, 25, 20, .07);
 }
+.colophon a { color: var(--ink-2) }
+.colophon a:hover { color: var(--accent) }
+.cp-gh {
+  display: inline-flex; align-items: center;
+  margin-left: 10px; vertical-align: -2px;
+}
+.cp-gh svg { display: block }
 
 /* 页脚整块下线（2026-10-07，用户要求）：四栏链接 → 极简一行 → 一行版权。
    别再加回 footer 里的任何链接/栏目元素。 */

@@ -134,10 +134,10 @@ for (const path of ALL_URLS) {
   // —— 外壳完整性 ——
   if (!/<h1[\s>]/.test(html)) report(`H1   ${path} 页面里没有 h1`)
   if (!html.includes('<nav class="top"')) report(`NAV  ${path} 缺少顶部导航`)
-  // 页脚只剩一行版权（2026-10-07 定稿）：允许且仅允许 colophon 这一个 footer。
-  // 内部导航由顶部 sticky 导航承担，任何链接/栏目/简介回潮都报错。
-  if (!/<footer class="colophon">© 2026 前端学习网<\/footer>/.test(html)) {
-    report(`FOOT ${path} 缺少版权行 footer.colophon「© 2026 前端学习网」`)
+  // 页脚一行版权（2026-10-07 定稿，2026-10-15 增补：站名链回本站 + GitHub 图标）。
+  // 允许且仅允许 colophon 这一个 footer；内部导航由顶部 sticky 导航承担。
+  if (!/<footer class="colophon">© 2026 <a class="cp-site" href="[^"]*\/">前端学习网<\/a><a class="cp-gh" href="https:\/\/github\.com\/orz1245\/study"[^>]*><svg/.test(html)) {
+    report(`FOOT ${path} 页脚缺站名链接或 GitHub 图标链接`)
   }
   const footers = html.match(/<footer[^>]*>[\s\S]*?<\/footer>/g) || []
   if (footers.length !== 1) report(`FOOT ${path} footer 元素应有且仅有 1 个（colophon），实际 ${footers.length}`)
