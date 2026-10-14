@@ -85,3 +85,18 @@ export function webSiteJsonLd({ description }) {
     publisher: { '@type': 'Organization', name: SITE_NAME },
   })
 }
+
+export function itemListJsonLd({ name, items }) {
+  return jsonLdSafe({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: it.name,
+      url: SITE + it.url,
+    })),
+  })
+}

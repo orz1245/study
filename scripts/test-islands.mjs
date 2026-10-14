@@ -520,9 +520,14 @@ function runIsland(files, {
   ok(editor.value === '', '清空应清掉编辑器内容')
   ok(out.textContent === '运行结果将显示在这里', `清空应恢复占位文案，实际：${out.textContent}`)
 
+  // TypeScript 类型剥离运行支持
+  editor.value = 'interface User { name: string; age?: number }\nconst greet = (u: User): string => u.name;\nconsole.log(greet({ name: "TS_OK" }));'
+  pg.fire('click', { target: runBtn })
+  ok(out.textContent.includes('TS_OK'), `应剥离 TS 类型并成功执行，实际：${out.textContent}`)
+
   ok(console.log === nativeLog, 'console.log 必须被还原，不能永久改写全局')
 }
 
 if (bad.length) console.log(bad.join('\n'))
-console.log(failCount ? `\n小岛测试失败 ${failCount} 项` : '\n小岛测试全部通过 ✔（题库 15 项 / 仪表盘 5 项 / 留言板 10 项 / 复制按钮 10 项 / 演练场 22 项）')
+console.log(failCount ? `\n小岛测试失败 ${failCount} 项` : '\n小岛测试全部通过 ✔（题库 15 项 / 仪表盘 5 项 / 留言板 10 项 / 复制按钮 10 项 / 演练场 23 项）')
 process.exit(failCount ? 1 : 0)

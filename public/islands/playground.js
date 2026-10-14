@@ -10,6 +10,16 @@
    脚本被禁时页面上不会出现一个空壳浮层（.pg 默认 display:none）。
    ========================================================================== */
 (function () {
+  // 轻量级 TypeScript 类型擦除器与 Node.js 基础环境桩（让 TS 课程与 Node 示例代码也能在浏览器演练场直接运行）
+  function stripTsTypes(src) {
+    return String(src || '')
+      .replace(/^\s*(?:export\s+)?interface\s+[A-Za-z0-9_<>\s,]+\{[\s\S]*?\}/gm, '')
+      .replace(/^\s*(?:export\s+)?type\s+[A-Za-z0-9_<>]+\s*=\s*(?:\{[\s\S]*?\}|[^;\n]+);?/gm, '')
+      .replace(/\s+as\s+(?:const|[A-Za-z0-9_<>\[\]|&]+)/g, '')
+      .replace(/\s+satisfies\s+[A-Za-z0-9_<>\[\]|&]+/g, '')
+      .replace(/([a-zA-Z0-9_\])])\??\s*:\s*(?:string|number|boolean|any|unknown|void|never|Record<[^>]+>|Array<[^>]+>|Promise<[^>]+>|[A-Z][A-Za-z0-9_<>]*(?:\[\])?)(?=\s*(?:=>|[=,;)\n{]))/g, '$1')
+  }
+
   'use strict'
 
   var pg = document.getElementById('pg')
@@ -66,7 +76,7 @@
         for (var i = 0; i < arguments.length; i++) parts.push(describe(arguments[i]))
         logs.push(parts.join(' '))
       }
-      var result = (0, eval)(code)
+      var result = (0, eval)(stripTsTypes(code))
       console.log = nativeLog
 
       var body = logs.length ? logs.join('\n') : ''

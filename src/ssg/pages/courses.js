@@ -12,7 +12,9 @@ import {
   canonicalFor,
 } from '../../utils/seo.js'
 import { esc, firstSentence, lessonGap, styleExercise } from '../html.js'
-import { breadcrumbJsonLd, articleJsonLd, courseJsonLd } from '../jsonld.js'
+import { breadcrumbJsonLd, articleJsonLd, courseJsonLd, itemListJsonLd } from '../jsonld.js'
+import { categoryUrl } from '../../utils/urls.js'
+import { categories } from '../../data/index.js'
 import { crumbHtml, footNavHtml, playgroundHtml, PAGE_SCRIPTS } from '../layout.js'
 
 export function buildCoursePages({ writePage, pageShell, getCourseLastmod, latestCourseLastmod }) {
@@ -37,8 +39,15 @@ export function buildCoursePages({ writePage, pageShell, getCourseLastmod, lates
 
     // —— 课程封面页 ——
     const landSeo = courseSeo(course)
+    const practiceLink = meta.practiceCategory
+      ? `<p class="page-sub" style="margin-top:-6px"><a href="/interview/${esc(meta.practiceCategory)}/" style="color:var(--accent);text-decoration:none;font-weight:500">配套题库：前往巩固本课高频面试真题 &rarr;</a></p>\n`
+      : ''
+    const planHtml = Array.isArray(course.plan) && course.plan.length
+      ? `<section class="sec-gap"><h2 class="sec-title">阶段学习计划（${course.plan.length} 步）</h2><ol class="ex-ol">${course.plan.map(p => `<li><strong>Day ${esc(String(p.day || ''))} · ${esc(p.title || '')}</strong>：${esc(p.goal || p.tasks || '')}</li>`).join('')}</ol></section>\n`
+      : ''
     const landBody = `<h1 class="page">${esc(meta.title)}<span class="n">（${ordered.length} 节课）</span></h1>
 <p class="page-sub">${esc(meta.subtitle || '')}</p>
+${practiceLink}
 <div class="lesson-list">
 ${(meta.chapters || [])
       .map((ch) => {
@@ -53,7 +62,7 @@ ${(meta.chapters || [])
       })
       .join('\n')}
 </div>
-${playgroundHtml({ refLabel: '当前课程', refText: meta.title })}`
+${planHtml}${playgroundHtml({ refLabel: '当前课程', refText: meta.title })}`
 
     const landHtml = pageShell({
       ...landSeo,
@@ -142,6 +151,7 @@ ${courses
     jsonLd: [
       breadcrumbJsonLd([{ name: '首页', url: '/' }, { name: '课程' }]),
       articleJsonLd({ title: '系统课程', canonical: SITE + '/course/', section: '课程', dateModified: latestCourseLastmod }),
+      itemListJsonLd({ name: '前端系统课程列表', items: courses.map((c) => ({ name: c.meta.title, url: courseUrl(c.id) })) }),
     ],
     bodyHtml: courseIndexBody,
     active: 'course',

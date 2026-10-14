@@ -1,3 +1,5 @@
+import { courses } from '../../data/courses.js'
+import { courseUrl } from '../../utils/urls.js'
 // 面试题库页面生成：题库总览页（/interview/）、分类聚合页（/interview/<cat>/）与题目详情页（/interview/<cat>/<q-slug>/）
 import { allQuestions, categories } from '../../data/index.js'
 import { renderMarkdown } from '../../utils/markdown.js'
@@ -12,7 +14,7 @@ import {
   canonicalFor,
 } from '../../utils/seo.js'
 import { esc, mdToText } from '../html.js'
-import { breadcrumbJsonLd, articleJsonLd, qaJsonLd } from '../jsonld.js'
+import { breadcrumbJsonLd, articleJsonLd, qaJsonLd, itemListJsonLd } from '../jsonld.js'
 import {
   crumbHtml,
   footNavHtml,
@@ -117,11 +119,16 @@ export function buildInterviewPages({ writePage, pageShell, getCategoryLastmod, 
 
     const catName = categorySeoName(category)
     const catSeo = categorySeo(category)
+    const relCourses = courses.filter((c) => c.meta && c.meta.practiceCategory === category)
+    const relCoursesHtml = relCourses.length
+      ? `<p class="page-sub" style="margin-top:-6px">配套系统教程：${relCourses.map((c) => `<a href="${courseUrl(c.id)}" style="color:var(--accent);text-decoration:none;font-weight:500;margin-right:12px">${esc(c.meta.title)}（${(c.lessons || []).length} 节课） &rarr;</a>`).join('')}</p>\n`
+      : ''
     const catBody = `${pageHeadHtml({
       title: `${catName} 面试题`,
       desc: `共 ${qs.length} 道 ${catName} 方向的面试题，每题附完整答案与代码示例。点击右侧方框可标记掌握度。`,
       bar: PROGRESS_BAR,
     })}
+${relCoursesHtml}
 ${searchBarHtml()}
 ${filterBarHtml(category)}
 ${questionListHtml(qs)}`
@@ -133,6 +140,7 @@ ${questionListHtml(qs)}`
       jsonLd: [
         breadcrumbJsonLd([{ name: '首页', url: '/' }, { name: '面试题库', url: '/interview/' }, { name: catName }]),
         articleJsonLd({ title: `${catName} 面试题`, canonical: catUrl, section: '面试题库', dateModified: lastmod }),
+        itemListJsonLd({ name: `${catName} 面试题列表`, items: qs.map((q) => ({ name: q.question, url: questionUrl(q) })) }),
       ],
       breadcrumbHtml: crumbHtml([{ name: '首页', url: '/' }, { name: '面试题库', url: '/interview/' }, { name: catName }]),
       bodyHtml: catBody,
@@ -206,6 +214,7 @@ ${playgroundHtml({ refLabel: '当前题目', refText: q.question })}`
     jsonLd: [
       breadcrumbJsonLd([{ name: '首页', url: '/' }, { name: '面试题库' }]),
       articleJsonLd({ title: '前端面试题库', canonical: canonicalFor('/interview/'), section: '面试题库', dateModified: latestQuestionLastmod }),
+      itemListJsonLd({ name: '前端面试题库分类索引', items: categories.map((c) => ({ name: `${c.name}面试题`, url: categoryUrl(c.key) })) }),
     ],
     bodyHtml: `${pageHeadHtml({
       title: '前端面试题库',

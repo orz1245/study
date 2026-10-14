@@ -1,1164 +1,197 @@
-// ============================================================
-// AST 实战图解教程（新版，独立于旧版 ast-course.js，不覆盖原内容）
-// 参考掘金《AST 语法结构树初学者完整教程》写作风格，结合旧版 AST 课程知识点
-// 循序渐进：初识 AST -> 手写解析器 -> acorn/babel 实战 -> 写插件/转换/lint
-// 模板字符串内反引号转义 \`，\${ 转义 \${，反斜杠已加倍保护正则
-// ============================================================
-
-export const astProCourseMeta = {'id': 'ast-pro', 'title': 'AST 实战图解教程', 'subtitle': '看懂代码在编译器眼中的样子：用图解拆开语法树的结构与遍历规则，读完就能独立写出一个可用的 Babel 插件。', 'level': '入门 → 实战', 'icon': '🌿', 'color': '#22c55e', 'practiceCategory': 'algorithm', 'chapters': [{'key': 'intro', 'name': '第一章 · 初识 AST', 'lessons': ['app-l1', 'app-l2']}, {'key': 'hand', 'name': '第二章 · 手写理解原理', 'lessons': ['app-l3', 'app-l4']}, {'key': 'tools', 'name': '第三章 · 用工具解析真实 JS', 'lessons': ['app-l5']}, {'key': 'babel', 'name': '第四章 · Babel 生态实战', 'lessons': ['app-l6', 'app-l7', 'app-l8']}, {'key': 'transform', 'name': '第五章 · 转换与生成', 'lessons': ['app-l9', 'app-l10']}]}
-
-export const astProChapters = [{'key': 'intro', 'name': '第一章 · 初识 AST', 'lessons': ['app-l1', 'app-l2']}, {'key': 'hand', 'name': '第二章 · 手写理解原理', 'lessons': ['app-l3', 'app-l4']}, {'key': 'tools', 'name': '第三章 · 用工具解析真实 JS', 'lessons': ['app-l5']}, {'key': 'babel', 'name': '第四章 · Babel 生态实战', 'lessons': ['app-l6', 'app-l7', 'app-l8']}, {'key': 'transform', 'name': '第五章 · 转换与生成', 'lessons': ['app-l9', 'app-l10']}]
+export const astProCourseMeta = {
+  "id": "ast-pro",
+  "title": "AST 实战图解教程",
+  "subtitle": "看懂代码在编译器眼中的样子：用图解拆开语法树的结构与遍历规则，读完就能独立写出一个可用的 Babel 插件。",
+  "level": "入门 → 实战",
+  "icon": "🌿",
+  "color": "#22c55e",
+  "practiceCategory": "algorithm",
+  "chapters": [
+    {
+      "key": "intro",
+      "name": "第一章 · 初识 AST",
+      "lessons": [
+        "app-l1",
+        "app-l2"
+      ]
+    },
+    {
+      "key": "hand",
+      "name": "第二章 · 手写理解原理",
+      "lessons": [
+        "app-l3",
+        "app-l4"
+      ]
+    },
+    {
+      "key": "tools",
+      "name": "第三章 · 用工具解析真实 JS",
+      "lessons": [
+        "app-l5"
+      ]
+    },
+    {
+      "key": "babel",
+      "name": "第四章 · Babel 生态实战",
+      "lessons": [
+        "app-l6",
+        "app-l7",
+        "app-l8"
+      ]
+    },
+    {
+      "key": "transform",
+      "name": "第五章 · 转换与生成",
+      "lessons": [
+        "app-l9",
+        "app-l10"
+      ]
+    }
+  ]
+}
 
 export const astProLessons = [
   {
-    id: 'app-l1',
-    chapter: 'intro',
-    title: '什么是 AST？看一段代码如何变成“树”',
-    minutes: 30,
-    content: `### 本节目标
-
-- 用最直观的方式理解：AST（抽象语法树）到底是什么
-- 亲手“看到”一段代码对应的树长什么样
-- 记住 AST 节点的统一形状：\`{ type, ... }\`
-
-### 一句话先记住
-
-> AST 是**源代码语法结构的一张树状地图**。编译器/转译器先把你写的代码“翻译”成这张地图，再在地图上做增删改，最后把地图重新画回代码。
-
-先别背定义，我们看一个例子。下面这行 JS：
-
-\`\`\`js
-const answer = 1 + 2
-\`\`\`
-
-编译器读完它，脑子里会生成这样一棵树（这就是 AST）：
-
-\`\`\`
-VariableDeclaration (const)        // 变量声明
-└─ VariableDeclarator              // 一个“变量 = 值”的绑定
-   ├─ id: Identifier(answer)       // 变量名 answer
-   └─ init: BinaryExpression(+)    // 右边是一个“加法运算”
-      ├─ left:  Literal(1)         // 左操作数 1
-      └─ right: Literal(2)         // 右操作数 2
-\`\`\`
-
-发现了吗？AST 里**每一个节点都有一个 \`type\` 字段**（\`VariableDeclaration\`、\`Identifier\`、\`BinaryExpression\`……），其余字段描述这个节点的细节。整棵树就是用一层层 \`{ type, ... }\` 把“程序在做什么”表达出来。
-
-**为什么叫“抽象”**：它丢掉了源码里对运行没意义的细节——比如空格、换行、分号、括号的书写形式。它只保留“语法结构”。所以 \`const answer = 1+2\` 和 \`const answer=1 + 2\`（格式不同）会生成**同一棵** AST。
-
-**感性认识工具**：强烈推荐打开 [AST Explorer](https://astexplorer.net) ，左边粘贴任意代码，右边就是实时生成的 AST。先“看”几百棵树，比看任何文字都管用。
-
-### 动手：把一颗 AST 打印成树状图
-
-下面这段代码**不需要任何依赖**，把一颗硬编码的 AST 递归打印成缩进的树。你改改里面的节点，就能直观感受“树”是怎么组织的。
-
-\`\`\`js
-// 运行环境：Node.js 18+（无需安装任何依赖）
-// 运行方式：把整段保存为 app-l1.cjs，终端执行  node app-l1.cjs
-
-// 一颗对应 \`const answer = 1 + 2\` 的极简 AST（结构参考 ESTree 规范）
-const ast = {
-  type: 'VariableDeclaration',
-  kind: 'const',
-  declarations: [{
-    type: 'VariableDeclarator',
-    id: { type: 'Identifier', name: 'answer' },
-    init: {
-      type: 'BinaryExpression',
-      operator: '+',
-      left: { type: 'Literal', value: 1 },
-      right: { type: 'Literal', value: 2 }
-    }
-  }]
-}
-
-// 递归打印 AST：按深度缩进，把“树”画出来
-function printTree(node, depth) {
-  if (depth === undefined) depth = 0
-  if (!node || typeof node !== 'object' || !node.type) return
-  const pad = '  '.repeat(depth)
-  // 节点类型 + 最关键的信息（名字/值/运算符/声明方式）
-  let info = node.type
-  if (node.kind) info += ' (' + node.kind + ')'
-  if (node.name) info += ' (name=' + node.name + ')'
-  if (node.operator) info += ' (op=' + node.operator + ')'
-  if (Object.prototype.hasOwnProperty.call(node, 'value')) info += ' (value=' + node.value + ')'
-  console.log(pad + info)
-  // 递归处理子节点（数组字段或带 type 的对象字段）
-  for (const key of Object.keys(node)) {
-    if (['type', 'kind', 'name', 'operator', 'value', 'start', 'end', 'loc'].includes(key)) continue
-    const val = node[key]
-    if (Array.isArray(val)) val.forEach((child) => printTree(child, depth + 1))
-    else if (val && typeof val === 'object') printTree(val, depth + 1)
-  }
-}
-
-printTree(ast)
-
-// === 终端输出（节选）===
-// VariableDeclaration (const)
-//   VariableDeclarator
-//     Identifier (name=answer)
-//     BinaryExpression (op=+)
-//       Literal (value=1)
-//       Literal (value=2)
-\`\`\`
-
-### 名词解释
-
-**树（Tree）**：一种“一个节点可以有多个分支子节点”的数据结构。它只有唯一的根（根没有父节点），末端的叶子节点没有子节点。AST 就是一棵这样的树；你电脑里的文件夹目录、公司的组织架构，本质上也都是树。理解树的关键只有一句话：**整体由“节点 + 节点之间的父子关系”组成**，而不是一条线。
-
-**节点（Node）**：树里的一个基本单元。在 AST 中，每个节点都带一个 \`type\` 字段，用来说明“我是哪一种语法结构”（比如 \`VariableDeclaration\` 表示变量声明）。你可以把节点理解为“树上的一个叉点”，它携带了关于这段代码的局部信息。
-
-### 课后练习
-
-**练习 1**：下面三行代码，哪些会生成“同一棵” AST？为什么？
-\`\`\`
-const a = 1 + 2
-const a = 1 + 2      // 只是多了空格
-let   a = 1 + 2      // 只是把 const 换成 let
-\`\`\`
-> **答案**：前两行生成同一棵 AST。因为 AST 是“抽象”的——它丢掉空格、换行等书写格式，只保留语法结构。第三行不同：变量声明方式 \`kind\` 从 \`const\` 变成了 \`let\`，这是语法结构层面的差异，所以树不同。
-
-**练习 2**：请用对象字面量，写出 \`let x = 5\` 对应的极简 AST（只要结构，不用写位置信息）。
-> **答案**：
->     {
->       type: 'VariableDeclaration', kind: 'let',
->       declarations: [{
->         type: 'VariableDeclarator',
->         id: { type: 'Identifier', name: 'x' },
->         init: { type: 'Literal', value: 5 }
->       }]
->     }
-
-### 本节小结（观点与完整描述）
-
-学完本节，你真正要建立的不是一个“AST 的定义”，而是一幅画面：**写代码，本质上是在画一棵树**。编译器 / 转译器先把你的文字翻译成树，再在树上做增删改，最后把树重新画回文字。这个“文字 ↔ 树”的双向转换，是后面所有工具（Babel、ESLint、TypeScript）共同的地基。你暂时不需要背下每一种节点的名字，只要先牢牢记住两件事就够用：① 每个 AST 节点都有一个 \`type\` 字段；② “抽象”的意思是丢掉格式、只保留结构。剩下的，交给下一节。`
+    "id": "app-l1",
+    "chapter": "intro",
+    "title": "什么是 AST？看一段代码如何变成“树”",
+    "minutes": 30,
+    "content": "### 本节目标\n\n- 用最直观的方式理解：AST（抽象语法树）到底是什么\n- 亲手“看到”一段代码对应的树长什么样\n- 记住 AST 节点的统一形状：`{ type, ... }`\n\n### 一句话先记住\n\n> AST 是**源代码语法结构的一张树状地图**。编译器/转译器先把你写的代码“翻译”成这张地图，再在地图上做增删改，最后把地图重新画回代码。\n\n先别背定义，我们看一个例子。下面这行 JS：\n\n```js\nconst answer = 1 + 2\n```\n\n编译器读完它，脑子里会生成这样一棵树（这就是 AST）：\n\n```text\nVariableDeclaration (const)        // 变量声明\n└─ VariableDeclarator              // 一个“变量 = 值”的绑定\n   ├─ id: Identifier(answer)       // 变量名 answer\n   └─ init: BinaryExpression(+)    // 右边是一个“加法运算”\n      ├─ left:  Literal(1)         // 左操作数 1\n      └─ right: Literal(2)         // 右操作数 2\n```\n\n发现了吗？AST 里**每一个节点都有一个 `type` 字段**（`VariableDeclaration`、`Identifier`、`BinaryExpression`……），其余字段描述这个节点的细节。整棵树就是用一层层 `{ type, ... }` 把“程序在做什么”表达出来。\n\n**为什么叫“抽象”**：它丢掉了源码里对运行没意义的细节——比如空格、换行、分号、括号的书写形式。它只保留“语法结构”。所以 `const answer = 1+2` 和 `const answer=1 + 2`（格式不同）会生成**同一棵** AST。\n\n**感性认识工具**：强烈推荐打开 [AST Explorer](https://astexplorer.net) ，左边粘贴任意代码，右边就是实时生成的 AST。先“看”几百棵树，比看任何文字都管用。\n\n### 动手：把一颗 AST 打印成树状图\n\n下面这段代码**不需要任何依赖**，把一颗硬编码的 AST 递归打印成缩进的树。你改改里面的节点，就能直观感受“树”是怎么组织的。\n\n```js\n// 运行环境：Node.js 18+（无需安装任何依赖）\n// 运行方式：把整段保存为 app-l1.cjs，终端执行  node app-l1.cjs\n\n// 一颗对应 `const answer = 1 + 2` 的极简 AST（结构参考 ESTree 规范）\nconst ast = {\n  type: 'VariableDeclaration',\n  kind: 'const',\n  declarations: [{\n    type: 'VariableDeclarator',\n    id: { type: 'Identifier', name: 'answer' },\n    init: {\n      type: 'BinaryExpression',\n      operator: '+',\n      left: { type: 'Literal', value: 1 },\n      right: { type: 'Literal', value: 2 }\n    }\n  }]\n}\n\n// 递归打印 AST：按深度缩进，把“树”画出来\nfunction printTree(node, depth) {\n  if (depth === undefined) depth = 0\n  if (!node || typeof node !== 'object' || !node.type) return\n  const pad = '  '.repeat(depth)\n  // 节点类型 + 最关键的信息（名字/值/运算符/声明方式）\n  let info = node.type\n  if (node.kind) info += ' (' + node.kind + ')'\n  if (node.name) info += ' (name=' + node.name + ')'\n  if (node.operator) info += ' (op=' + node.operator + ')'\n  if (Object.prototype.hasOwnProperty.call(node, 'value')) info += ' (value=' + node.value + ')'\n  console.log(pad + info)\n  // 递归处理子节点（数组字段或带 type 的对象字段）\n  for (const key of Object.keys(node)) {\n    if (['type', 'kind', 'name', 'operator', 'value', 'start', 'end', 'loc'].includes(key)) continue\n    const val = node[key]\n    if (Array.isArray(val)) val.forEach((child) => printTree(child, depth + 1))\n    else if (val && typeof val === 'object') printTree(val, depth + 1)\n  }\n}\n\nprintTree(ast)\n\n// === 终端输出（节选）===\n// VariableDeclaration (const)\n//   VariableDeclarator\n//     Identifier (name=answer)\n//     BinaryExpression (op=+)\n//       Literal (value=1)\n//       Literal (value=2)\n```\n\n### 名词解释\n\n**树（Tree）**：一种“一个节点可以有多个分支子节点”的数据结构。它只有唯一的根（根没有父节点），末端的叶子节点没有子节点。AST 就是一棵这样的树；你电脑里的文件夹目录、公司的组织架构，本质上也都是树。理解树的关键只有一句话：**整体由“节点 + 节点之间的父子关系”组成**，而不是一条线。\n\n**节点（Node）**：树里的一个基本单元。在 AST 中，每个节点都带一个 `type` 字段，用来说明“我是哪一种语法结构”（比如 `VariableDeclaration` 表示变量声明）。你可以把节点理解为“树上的一个叉点”，它携带了关于这段代码的局部信息。\n\n### 课后练习\n\n**练习 1**：下面三行代码，哪些会生成“同一棵” AST？为什么？\n```javascript\nconst a = 1 + 2\nconst a = 1 + 2      // 只是多了空格\nlet   a = 1 + 2      // 只是把 const 换成 let\n```\n> **答案**：前两行生成同一棵 AST。因为 AST 是“抽象”的——它丢掉空格、换行等书写格式，只保留语法结构。第三行不同：变量声明方式 `kind` 从 `const` 变成了 `let`，这是语法结构层面的差异，所以树不同。\n\n**练习 2**：请用对象字面量，写出 `let x = 5` 对应的极简 AST（只要结构，不用写位置信息）。\n> **答案**：\n>     {\n>       type: 'VariableDeclaration', kind: 'let',\n>       declarations: [{\n>         type: 'VariableDeclarator',\n>         id: { type: 'Identifier', name: 'x' },\n>         init: { type: 'Literal', value: 5 }\n>       }]\n>     }\n\n### 本节小结（观点与完整描述）\n\n学完本节，你真正要建立的不是一个“AST 的定义”，而是一幅画面：**写代码，本质上是在画一棵树**。编译器 / 转译器先把你的文字翻译成树，再在树上做增删改，最后把树重新画回文字。这个“文字 ↔ 树”的双向转换，是后面所有工具（Babel、ESLint、TypeScript）共同的地基。你暂时不需要背下每一种节点的名字，只要先牢牢记住两件事就够用：① 每个 AST 节点都有一个 `type` 字段；② “抽象”的意思是丢掉格式、只保留结构。剩下的，交给下一节。"
   },
   {
-    id: 'app-l2',
-    chapter: 'intro',
-    title: '编译器三步走：解析 → 转换 → 生成',
-    minutes: 35,
-    content: `### 本节目标
-
-- 理解 AST 在“编译器/转译器”流水线里的位置
-- 用一个 30 行的迷你例子，跑通 解析→转换→生成 全过程
-- 建立核心心智模型：**转换（Transformation）才是你写插件时真正动手的地方**
-
-无论 Babel、TypeScript、ESLint 还是 webpack，处理代码的本质都是同一条流水线（Babel 官方的三步）：
-
-\`\`\`
-源代码 ──① 解析 Parse──▶ AST ──② 转换 Transform──▶ 新 AST ──③ 生成 Generate──▶ 新代码
-          (读成树)               (在树上改)              (树画回代码)
-\`\`\`
-
-- **① 解析 Parse**：把字符串变成 AST。它内部又分两步——**词法分析**（切 token）和**语法分析**（token 拼成树）。（这两步我们第 3、4 节亲手写一遍。）
-- **② 转换 Transform**：遍历 AST，增删改节点。这是 Babel 插件、ESLint 规则、代码压缩器真正干活的地方。
-- **③ 生成 Generate**：把改好的 AST 再“画”回字符串代码，并生成 source map。
-
-### 动手：一条迷你流水线
-
-下面**零依赖**实现一个超简化版：\`parse\`（硬编码成 AST）→ \`transform\`（把变量名 \`answer\` 改成 \`result\`）→ \`generate\`（把 AST 拼回代码）。
-
-\`\`\`js
-// 运行环境：Node.js 18+（无需任何依赖）
-// 运行方式：把整段保存为 app-l2.cjs，终端执行  node app-l2.cjs
-
-// ① 解析：真实场景由解析器生成，这里直接给出 AST（对应 \`const answer = 1 + 2\`）
-function parse() {
-  return {
-    type: 'VariableDeclaration', kind: 'const',
-    declarations: [{
-      type: 'VariableDeclarator',
-      id: { type: 'Identifier', name: 'answer' },
-      init: { type: 'BinaryExpression', operator: '+',
-        left: { type: 'Literal', value: 1 }, right: { type: 'Literal', value: 2 } }
-    }]
-  }
-}
-
-// ② 转换：遍历 AST，把所有名为 answer 的标识符改成 result
-function transform(ast) {
-  function walk(node) {
-    if (!node || typeof node !== 'object') return
-    if (node.type === 'Identifier' && node.name === 'answer') node.name = 'result'
-    for (const key of Object.keys(node)) {
-      const val = node[key]
-      if (Array.isArray(val)) val.forEach(walk)
-      else if (val && typeof val === 'object') walk(val)
-    }
-  }
-  walk(ast)
-  return ast
-}
-
-// ③ 生成：把 AST 重新拼成代码字符串
-function generate(ast) {
-  const d = ast.declarations[0]
-  const id = d.id.name
-  const init = d.init
-  const expr = init.left.value + ' ' + init.operator + ' ' + init.right.value
-  return ast.kind + ' ' + id + ' = ' + expr
-}
-
-// 跑通流水线
-const ast1 = parse()
-const ast2 = transform(ast1)
-const code = generate(ast2)
-console.log('转换后代码：', code)   // 转换后代码： const result = 1 + 2
-
-// === 调用示例说明 ===
-// parse()         -> 返回原始 AST（answer）
-// transform(ast) -> 原地修改 AST，把 answer 改名 result，返回同一棵树
-// generate(ast)  -> 把树渲染成代码字符串
-\`\`\`
-
-### 名词解释
-
-**流水线（Pipeline）**：一串“按顺序处理数据”的步骤，上一步的输出是下一步的输入。淘米的流程（洗 → 煮 → 盛）就是流水线。代码处理工具的通用骨架是：输入源码 → 输出新源码，中间必经“树”。
-
-**转换（Transform）**：流水线的第 ② 步，在一棵已有的 AST 上做增删改。它是你写 Babel 插件、ESLint 规则、代码压缩器时**真正动手的地方**——第 ① 和第 ③ 步只是把“文字”和“树”互相搬运，真正改变代码含义的是第 ② 步。
-
-### 课后练习
-
-**练习 1**：用一句话给 Babel、ESLint、webpack 这三种工具归类它们共同的工作步骤。
-> **答案**：它们都遵循同一套三步流水线——\`Parse（源码→AST）→ Transform（在树上改）→ Generate（AST→新源码）\`。区别只在于第 ② 步“改什么”：Babel 改语法、ESLint 报问题、webpack 做打包优化。
-
-**练习 2**：在 app-l2 的迷你例子里，如果把 \`transform\` 改成“把所有数字字面量的值 +1”，那么 \`generate\` 最终输出的代码会变成什么？
-> **答案**：\`const result = 2 + 3\`。原因：原 AST 中 \`1\` 和 \`2\` 两个 \`Literal\` 节点的值分别被 +1 变成 \`2\` 和 \`3\`，\`generate\` 再把这棵改好的树拼回代码字符串。
-
-### 本节小结（观点与完整描述）
-
-学完本节，你得到的不是三个英文单词，而是一副“看穿所有代码工具”的眼镜：以后再看到任何处理代码的库，你都会下意识去问“它的 AST 在哪一步被改了”。整条流水线里，真正动手改树的是第 ② 步 Transform，第 ① 和第 ③ 步只是把文字和树互相搬运、并不改变代码含义。掌握了这个骨架，你写 Babel 插件或 ESLint 规则时就不会再“不知道从哪下手”——你只是在第 ② 步的树上做修改而已。记住它，比记住任何具体 API 都重要。`
+    "id": "app-l2",
+    "chapter": "intro",
+    "title": "编译器三步走：解析 → 转换 → 生成",
+    "minutes": 35,
+    "content": "### 本节目标\n\n- 理解 AST 在“编译器/转译器”流水线里的位置\n- 用一个 30 行的迷你例子，跑通 解析→转换→生成 全过程\n- 建立核心心智模型：**转换（Transformation）才是你写插件时真正动手的地方**\n\n无论 Babel、TypeScript、ESLint 还是 webpack，处理代码的本质都是同一条流水线（Babel 官方的三步）：\n\n```text\n源代码 ──① 解析 Parse──▶ AST ──② 转换 Transform──▶ 新 AST ──③ 生成 Generate──▶ 新代码\n          (读成树)               (在树上改)              (树画回代码)\n```\n\n- **① 解析 Parse**：把字符串变成 AST。它内部又分两步——**词法分析**（切 token）和**语法分析**（token 拼成树）。（这两步我们第 3、4 节亲手写一遍。）\n- **② 转换 Transform**：遍历 AST，增删改节点。这是 Babel 插件、ESLint 规则、代码压缩器真正干活的地方。\n- **③ 生成 Generate**：把改好的 AST 再“画”回字符串代码，并生成 source map。\n\n### 动手：一条迷你流水线\n\n下面**零依赖**实现一个超简化版：`parse`（硬编码成 AST）→ `transform`（把变量名 `answer` 改成 `result`）→ `generate`（把 AST 拼回代码）。\n\n```js\n// 运行环境：Node.js 18+（无需任何依赖）\n// 运行方式：把整段保存为 app-l2.cjs，终端执行  node app-l2.cjs\n\n// ① 解析：真实场景由解析器生成，这里直接给出 AST（对应 `const answer = 1 + 2`）\nfunction parse() {\n  return {\n    type: 'VariableDeclaration', kind: 'const',\n    declarations: [{\n      type: 'VariableDeclarator',\n      id: { type: 'Identifier', name: 'answer' },\n      init: { type: 'BinaryExpression', operator: '+',\n        left: { type: 'Literal', value: 1 }, right: { type: 'Literal', value: 2 } }\n    }]\n  }\n}\n\n// ② 转换：遍历 AST，把所有名为 answer 的标识符改成 result\nfunction transform(ast) {\n  function walk(node) {\n    if (!node || typeof node !== 'object') return\n    if (node.type === 'Identifier' && node.name === 'answer') node.name = 'result'\n    for (const key of Object.keys(node)) {\n      const val = node[key]\n      if (Array.isArray(val)) val.forEach(walk)\n      else if (val && typeof val === 'object') walk(val)\n    }\n  }\n  walk(ast)\n  return ast\n}\n\n// ③ 生成：把 AST 重新拼成代码字符串\nfunction generate(ast) {\n  const d = ast.declarations[0]\n  const id = d.id.name\n  const init = d.init\n  const expr = init.left.value + ' ' + init.operator + ' ' + init.right.value\n  return ast.kind + ' ' + id + ' = ' + expr\n}\n\n// 跑通流水线\nconst ast1 = parse()\nconst ast2 = transform(ast1)\nconst code = generate(ast2)\nconsole.log('转换后代码：', code)   // 转换后代码： const result = 1 + 2\n\n// === 调用示例说明 ===\n// parse()         -> 返回原始 AST（answer）\n// transform(ast) -> 原地修改 AST，把 answer 改名 result，返回同一棵树\n// generate(ast)  -> 把树渲染成代码字符串\n```\n\n### 名词解释\n\n**流水线（Pipeline）**：一串“按顺序处理数据”的步骤，上一步的输出是下一步的输入。淘米的流程（洗 → 煮 → 盛）就是流水线。代码处理工具的通用骨架是：输入源码 → 输出新源码，中间必经“树”。\n\n**转换（Transform）**：流水线的第 ② 步，在一棵已有的 AST 上做增删改。它是你写 Babel 插件、ESLint 规则、代码压缩器时**真正动手的地方**——第 ① 和第 ③ 步只是把“文字”和“树”互相搬运，真正改变代码含义的是第 ② 步。\n\n### 课后练习\n\n**练习 1**：用一句话给 Babel、ESLint、webpack 这三种工具归类它们共同的工作步骤。\n> **答案**：它们都遵循同一套三步流水线——`Parse（源码→AST）→ Transform（在树上改）→ Generate（AST→新源码）`。区别只在于第 ② 步“改什么”：Babel 改语法、ESLint 报问题、webpack 做打包优化。\n\n**练习 2**：在 app-l2 的迷你例子里，如果把 `transform` 改成“把所有数字字面量的值 +1”，那么 `generate` 最终输出的代码会变成什么？\n> **答案**：`const result = 2 + 3`。原因：原 AST 中 `1` 和 `2` 两个 `Literal` 节点的值分别被 +1 变成 `2` 和 `3`，`generate` 再把这棵改好的树拼回代码字符串。\n\n### 本节小结（观点与完整描述）\n\n学完本节，你得到的不是三个英文单词，而是一副“看穿所有代码工具”的眼镜：以后再看到任何处理代码的库，你都会下意识去问“它的 AST 在哪一步被改了”。整条流水线里，真正动手改树的是第 ② 步 Transform，第 ① 和第 ③ 步只是把文字和树互相搬运、并不改变代码含义。掌握了这个骨架，你写 Babel 插件或 ESLint 规则时就不会再“不知道从哪下手”——你只是在第 ② 步的树上做修改而已。记住它，比记住任何具体 API 都重要。"
   },
   {
-    id: 'app-l3',
-    chapter: 'hand',
-    title: '手写 tokenizer：把源码切成 token 流',
-    minutes: 50,
-    content: `### 本节目标
-
-- 理解“词法分析”这一步到底在干什么
-- 用手写**状态机**实现一个能用的 tokenizer
-- 看清 token 的统一形状 \`{ type, value }\`
-
-解析的第一步是**词法分析（Lexical Analysis）**：把一长串字符，切成有语义的“词”（token）。
-
-例如源码 \`let total = price * 3\` 会被切成：
-
-\`\`\`
-[let, total, =, price, *, 3]
- 关键字 标识符  运算符 标识符 运算符 数字
-\`\`\`
-
-每个 token 长这样：\`{ type: 'ident', value: 'total' }\`。**统一形状**很关键——后面的 Parser 只认 \`type\`，不关心原文。
-
-**为什么用手写状态机，而不是一个正则搞定？** 正则适合简单语言；但 JS 这种有字符串、注释、多字符运算符（\`===\`、\`&&\`）的语言，状态机更可控：逐字符读，记住“我现在在攒一个什么类型的词”，遇到边界就把攒下的内容吐出来。
-
-### 动手：一个能跑的 tokenizer
-
-下面实现：跳过空白与 \`//\` 注释；识别数字、标识符/关键字、运算符、\`()\`、字符串。
-
-\`\`\`js
-// 运行环境：Node.js 18+（无需任何依赖）
-// 运行方式：把整段保存为 app-l3.cjs，终端执行  node app-l3.cjs
-
-// 词法分析器：逐字符扫描，按“当前在攒什么”产出 token
-function tokenize(src) {
-  const tokens = []
-  let i = 0, buf = '', state = 'idle'
-  const isDigit = (c) => c >= '0' && c <= '9'
-  const isIdentStart = (c) => /[A-Za-z_$]/.test(c)
-  const isIdentPart = (c) => /[A-Za-z0-9_$]/.test(c)
-  const isSpace = (c) => c === ' ' || c === '\\n' || c === '\\t' || c === '\\r'
-
-  // 把当前累积的 buf 作为一个 token 吐出（type 由 state 决定）
-  const flush = (type) => {
-    if (buf) { tokens.push({ type: type, value: buf }); buf = '' }
-  }
-
-  while (i < src.length) {
-    const c = src[i]
-    // 碰到 // 注释：一直吃到行尾
-    if (c === '/' && src[i + 1] === '/') {
-      flush(state === 'idle' ? null : state)
-      while (i < src.length && src[i] !== '\\n') i++
-      state = 'idle'
-      continue
-    }
-    if (isSpace(c)) { flush(state === 'idle' ? null : state); state = 'idle'; i++; continue }
-    if (c === '"' || c === "'") {           // 字符串：读到配对的引号结束
-      flush(state === 'idle' ? null : state)
-      const quote = c; i++
-      let str = ''
-      while (i < src.length && src[i] !== quote) { str += src[i]; i++ }
-      i++ // 跳过结束引号
-      tokens.push({ type: 'string', value: str })
-      state = 'idle'
-      continue
-    }
-    if (isDigit(c)) { state = 'num'; buf += c; i++; continue }
-    if (isIdentStart(c)) { state = 'ident'; buf += c; i++; continue }
-    if (isIdentPart(c) && state !== 'idle') { buf += c; i++; continue }
-    // 多字符运算符（== === && || <= >= != !==）优先合并
-    const two = src.slice(i, i + 2)
-    const multiOps = ['==', '===', '&&', '||', '<=', '>=', '!=', '!==']
-    if (multiOps.includes(two)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: two }); state = 'idle'; i += 2; continue }
-    // 单字符符号
-    if ('+-*/%=<>!'.includes(c)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue }
-    if (c === '(' || c === ')') { flush(state === 'idle' ? null : state); tokens.push({ type: 'paren', value: c }); state = 'idle'; i++; continue }
-    // 兜底：未知字符直接当 op
-    flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue
-  }
-  flush(state === 'idle' ? null : state)
-
-  // 把 ident 里的关键字单独标记，方便后面 Parser 识别
-  const KEYWORDS = ['let', 'const', 'var', 'function', 'return', 'if', 'else']
-  return tokens.map((t) =>
-    t.type === 'ident' && KEYWORDS.includes(t.value) ? { type: 'keyword', value: t.value } : t
-  )
-}
-
-// === 调用示例 ===
-const code = 'let total = price * 3 + 1 // 算总价'
-const toks = tokenize(code)
-console.log(JSON.stringify(toks, null, 0))
-// 输出：
-// [{"type":"keyword","value":"let"},{"type":"ident","value":"total"},
-//  {"type":"op","value":"="},{"type":"ident","value":"price"},
-//  {"type":"op","value":"*"},{"type":"num","value":"3"},
-//  {"type":"op","value":"+"},{"type":"num","value":"1"}]
-\`\`\`
-
-### 名词解释
-
-**token（词法单元）**：源码被“切词”后得到的最小“有语义的词”，统一形状是 \`{ type, value }\`。比如 \`let total = price * 3\` 会被切成 \`let\`、\`total\`、\`=\`、\`price\`、\`*\`、\`3\` 共 6 个 token。它是“字符流”和“语法树”之间的中间产品——先有 token，Parser 才方便拼树。
-
-**状态机（State Machine）**：一个“记住自己当前处于什么状态、根据新输入决定下一步”的模型。本节 tokenizer 就是状态机：逐字符扫描，用 \`state\` 变量记住“我正在攒一个什么类型的词”，遇到边界就把攒下的内容吐成一个 token、再回到空闲态。
-
-### 课后练习
-
-**练习 1**：源码 \`const n = 10\` 经过本节的 \`tokenize\` 后，会按顺序得到哪些 token？（写出每个 token 的 \`type\` 与 \`value\`）
-> **答案**：\`{type:'keyword', value:'const'}\`、\`{type:'ident', value:'n'}\`、\`{type:'op', value:'='}\`、\`{type:'num', value:'10'}\`。注意 \`10\` 被识别成数字、不是标识符，因为 tokenizer 先判断 \`isDigit\`。
-
-**练习 2**：为什么多字符运算符 \`===\` 必须“优先合并”成一个 token，而不能被拆成两个 \`=\` token？
-> **答案**：如果拆成两个 \`=\` token，后面的 Parser 会误以为出现了两次赋值（\`a == b\` 被理解成 \`a = = b\`），语法和语义都错。合并成单个 \`===\` token 才能正确表达“严格相等”这一个运算符。
-
-### 本节小结（观点与完整描述）
-
-本节你亲手写的不是一个“玩具函数”，而是所有解析器的第一步真身：**词法分析 = 把字符流切成有类型的词**。你学到的关键不是那几十行代码，而是两个认知：第一，token 形状统一为 \`{ type, value }\`，后面的 Parser 只认 \`type\`，不关心原文长什么样；第二，状态机的价值在于“可控”——要支持字符串转义、模板字符串、注释，只要多添几个状态即可，而一个超大正则几乎无法扩展。真实项目里你当然不需要手写 tokenizer（acorn / @babel/parser 已经写好），但亲手写一遍，你会彻底看懂“源码到底是怎么被读懂的”，这层理解在调试语法报错时非常值钱。`
+    "id": "app-l3",
+    "chapter": "hand",
+    "title": "手写 tokenizer：把源码切成 token 流",
+    "minutes": 50,
+    "content": "### 本节目标\n\n- 理解“词法分析”这一步到底在干什么\n- 用手写**状态机**实现一个能用的 tokenizer\n- 看清 token 的统一形状 `{ type, value }`\n\n解析的第一步是**词法分析（Lexical Analysis）**：把一长串字符，切成有语义的“词”（token）。\n\n例如源码 `let total = price * 3` 会被切成：\n\n```javascript\n[let, total, =, price, *, 3]\n 关键字 标识符  运算符 标识符 运算符 数字\n```\n\n每个 token 长这样：`{ type: 'ident', value: 'total' }`。**统一形状**很关键——后面的 Parser 只认 `type`，不关心原文。\n\n**为什么用手写状态机，而不是一个正则搞定？** 正则适合简单语言；但 JS 这种有字符串、注释、多字符运算符（`===`、`&&`）的语言，状态机更可控：逐字符读，记住“我现在在攒一个什么类型的词”，遇到边界就把攒下的内容吐出来。\n\n### 动手：一个能跑的 tokenizer\n\n下面实现：跳过空白与 `//` 注释；识别数字、标识符/关键字、运算符、`()`、字符串。\n\n```js\n// 运行环境：Node.js 18+（无需任何依赖）\n// 运行方式：把整段保存为 app-l3.cjs，终端执行  node app-l3.cjs\n\n// 词法分析器：逐字符扫描，按“当前在攒什么”产出 token\nfunction tokenize(src) {\n  const tokens = []\n  let i = 0, buf = '', state = 'idle'\n  const isDigit = (c) => c >= '0' && c <= '9'\n  const isIdentStart = (c) => /[A-Za-z_$]/.test(c)\n  const isIdentPart = (c) => /[A-Za-z0-9_$]/.test(c)\n  const isSpace = (c) => c === ' ' || c === '\\n' || c === '\\t' || c === '\\r'\n\n  // 把当前累积的 buf 作为一个 token 吐出（type 由 state 决定）\n  const flush = (type) => {\n    if (buf) { tokens.push({ type: type, value: buf }); buf = '' }\n  }\n\n  while (i < src.length) {\n    const c = src[i]\n    // 碰到 // 注释：一直吃到行尾\n    if (c === '/' && src[i + 1] === '/') {\n      flush(state === 'idle' ? null : state)\n      while (i < src.length && src[i] !== '\\n') i++\n      state = 'idle'\n      continue\n    }\n    if (isSpace(c)) { flush(state === 'idle' ? null : state); state = 'idle'; i++; continue }\n    if (c === '\"' || c === \"'\") {           // 字符串：读到配对的引号结束\n      flush(state === 'idle' ? null : state)\n      const quote = c; i++\n      let str = ''\n      while (i < src.length && src[i] !== quote) { str += src[i]; i++ }\n      i++ // 跳过结束引号\n      tokens.push({ type: 'string', value: str })\n      state = 'idle'\n      continue\n    }\n    if (isDigit(c)) { state = 'num'; buf += c; i++; continue }\n    if (isIdentStart(c)) { state = 'ident'; buf += c; i++; continue }\n    if (isIdentPart(c) && state !== 'idle') { buf += c; i++; continue }\n    // 多字符运算符（== === && || <= >= != !==）优先合并\n    const two = src.slice(i, i + 2)\n    const multiOps = ['==', '===', '&&', '||', '<=', '>=', '!=', '!==']\n    if (multiOps.includes(two)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: two }); state = 'idle'; i += 2; continue }\n    // 单字符符号\n    if ('+-*/%=<>!'.includes(c)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue }\n    if (c === '(' || c === ')') { flush(state === 'idle' ? null : state); tokens.push({ type: 'paren', value: c }); state = 'idle'; i++; continue }\n    // 兜底：未知字符直接当 op\n    flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue\n  }\n  flush(state === 'idle' ? null : state)\n\n  // 把 ident 里的关键字单独标记，方便后面 Parser 识别\n  const KEYWORDS = ['let', 'const', 'var', 'function', 'return', 'if', 'else']\n  return tokens.map((t) =>\n    t.type === 'ident' && KEYWORDS.includes(t.value) ? { type: 'keyword', value: t.value } : t\n  )\n}\n\n// === 调用示例 ===\nconst code = 'let total = price * 3 + 1 // 算总价'\nconst toks = tokenize(code)\nconsole.log(JSON.stringify(toks, null, 0))\n// 输出：\n// [{\"type\":\"keyword\",\"value\":\"let\"},{\"type\":\"ident\",\"value\":\"total\"},\n//  {\"type\":\"op\",\"value\":\"=\"},{\"type\":\"ident\",\"value\":\"price\"},\n//  {\"type\":\"op\",\"value\":\"*\"},{\"type\":\"num\",\"value\":\"3\"},\n//  {\"type\":\"op\",\"value\":\"+\"},{\"type\":\"num\",\"value\":\"1\"}]\n```\n\n### 名词解释\n\n**token（词法单元）**：源码被“切词”后得到的最小“有语义的词”，统一形状是 `{ type, value }`。比如 `let total = price * 3` 会被切成 `let`、`total`、`=`、`price`、`*`、`3` 共 6 个 token。它是“字符流”和“语法树”之间的中间产品——先有 token，Parser 才方便拼树。\n\n**状态机（State Machine）**：一个“记住自己当前处于什么状态、根据新输入决定下一步”的模型。本节 tokenizer 就是状态机：逐字符扫描，用 `state` 变量记住“我正在攒一个什么类型的词”，遇到边界就把攒下的内容吐成一个 token、再回到空闲态。\n\n### 课后练习\n\n**练习 1**：源码 `const n = 10` 经过本节的 `tokenize` 后，会按顺序得到哪些 token？（写出每个 token 的 `type` 与 `value`）\n> **答案**：`{type:'keyword', value:'const'}`、`{type:'ident', value:'n'}`、`{type:'op', value:'='}`、`{type:'num', value:'10'}`。注意 `10` 被识别成数字、不是标识符，因为 tokenizer 先判断 `isDigit`。\n\n**练习 2**：为什么多字符运算符 `===` 必须“优先合并”成一个 token，而不能被拆成两个 `=` token？\n> **答案**：如果拆成两个 `=` token，后面的 Parser 会误以为出现了两次赋值（`a == b` 被理解成 `a = = b`），语法和语义都错。合并成单个 `===` token 才能正确表达“严格相等”这一个运算符。\n\n### 本节小结（观点与完整描述）\n\n本节你亲手写的不是一个“玩具函数”，而是所有解析器的第一步真身：**词法分析 = 把字符流切成有类型的词**。你学到的关键不是那几十行代码，而是两个认知：第一，token 形状统一为 `{ type, value }`，后面的 Parser 只认 `type`，不关心原文长什么样；第二，状态机的价值在于“可控”——要支持字符串转义、模板字符串、注释，只要多添几个状态即可，而一个超大正则几乎无法扩展。真实项目里你当然不需要手写 tokenizer（acorn / @babel/parser 已经写好），但亲手写一遍，你会彻底看懂“源码到底是怎么被读懂的”，这层理解在调试语法报错时非常值钱。"
   },
   {
-    id: 'app-l4',
-    chapter: 'hand',
-    title: '手写递归下降 Parser：把 token 拼成 AST',
-    minutes: 60,
-    content: `### 本节目标
-
-- 理解“语法分析”如何把 token 流拼成树
-- 用手写**递归下降（Recursive Descent）**解析器，处理运算符优先级
-- 得到一个能跑、能打印 AST 的迷你语言
-
-上一节我们得到了 token 流。这一步叫**语法分析（Syntactic Analysis）**：按照“语法规则”把 token 组装成一棵 AST。
-
-我们用的写法叫**递归下降**：为每一种语法结构写一个函数，函数里再调用更细的函数。例如“表达式”分三层：
-
-\`\`\`
-表达式 expression  =  赋值 assignment
-赋值   assignment  =  Identifier '=' 表达式  |  加减 additive
-加减   additive    =  乘除 multiplicative (('+'|'-') 乘除)*
-乘除   multiplicative = 一元 unary (('*'|'/') 一元)*
-一元   unary      =  ('-')? 基础 primary
-基础   primary    =  数字 | 字符串 | 标识符 | 调用 call | '(' 表达式 ')'
-调用   call       =  Identifier '(' (表达式 (',' 表达式)*)? ')'
-\`\`\`
-
-**优先级怎么体现？** 看调用顺序：\`additive\` 调用 \`multiplicative\`，所以 \`*\` 比 \`+\` 先结合——\`1 + 2 * 3\` 自然解析成 \`1 + (2 * 3)\`。这就是“递归下降天然表达优先级”。
-
-### 动手：一个能解析算术/变量/调用的 Parser
-
-\`\`\`js
-// 运行环境：Node.js 18+（无需任何依赖，依赖上一节的 tokenize）
-// 运行方式：把整段保存为 app-l4.cjs，终端执行  node app-l4.cjs
-// （这里把 tokenize 一起带上，保证单文件可运行）
-
-function tokenize(src) {
-  const tokens = []
-  let i = 0, buf = '', state = 'idle'
-  const isDigit = (c) => c >= '0' && c <= '9'
-  const isIdentStart = (c) => /[A-Za-z_$]/.test(c)
-  const isIdentPart = (c) => /[A-Za-z0-9_$]/.test(c)
-  const isSpace = (c) => c === ' ' || c === '\\n' || c === '\\t' || c === '\\r'
-  const flush = (type) => { if (buf) { tokens.push({ type, value: buf }); buf = '' } }
-  while (i < src.length) {
-    const c = src[i]
-    if (c === '/' && src[i + 1] === '/') { flush(state === 'idle' ? null : state); while (i < src.length && src[i] !== '\\n') i++; state = 'idle'; continue }
-    if (isSpace(c)) { flush(state === 'idle' ? null : state); state = 'idle'; i++; continue }
-    if (isDigit(c)) { state = 'num'; buf += c; i++; continue }
-    if (isIdentStart(c)) { state = 'ident'; buf += c; i++; continue }
-    if (isIdentPart(c) && state !== 'idle') { buf += c; i++; continue }
-    const two = src.slice(i, i + 2)
-    const multiOps = ['==', '===', '&&', '||', '<=', '>=', '!=', '!==']
-    if (multiOps.includes(two)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: two }); state = 'idle'; i += 2; continue }
-    if ('+-*/%=<>!'.includes(c)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue }
-    if (c === '(' || c === ')') { flush(state === 'idle' ? null : state); tokens.push({ type: 'paren', value: c }); state = 'idle'; i++; continue }
-    flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue
-  }
-  flush(state === 'idle' ? null : state)
-  const KEYWORDS = ['let', 'const', 'var', 'function', 'return', 'if', 'else']
-  return tokens.map((t) => t.type === 'ident' && KEYWORDS.includes(t.value) ? { type: 'keyword', value: t.value } : t)
-}
-
-// ---- 递归下降解析器 ----
-class Parser {
-  constructor(tokens) { this.tokens = tokens; this.pos = 0 }
-  peek() { return this.tokens[this.pos] }
-  next() { return this.tokens[this.pos++] }
-  expect(type, value) {
-    const t = this.next()
-    if (!t || t.type !== type || (value !== undefined && t.value !== value))
-      throw new Error('语法错误：期望 ' + (value || type) + '，但得到 ' + JSON.stringify(t))
-    return t
-  }
-
-  // 程序 = 多条语句
-  parseProgram() {
-    const body = []
-    while (this.pos < this.tokens.length) body.push(this.parseStatement())
-    return { type: 'Program', body }
-  }
-  parseStatement() {
-    const t = this.peek()
-    let stmt
-    if (t && t.type === 'keyword' && ['let', 'const', 'var'].includes(t.value))
-      stmt = this.parseVarDecl()
-    else
-      stmt = { type: 'ExpressionStatement', expression: this.parseExpression() }
-    // 消费可选的语句结束符 ;（不强制，兼容无分号写法）
-    if (this.peek() && this.peek().type === 'op' && this.peek().value === ';') this.next()
-    return stmt
-  }
-  parseVarDecl() {
-    const kind = this.next().value
-    const name = this.expect('ident').value
-    this.expect('op', '=')
-    const init = this.parseExpression()
-    return { type: 'VariableDeclaration', kind, id: { type: 'Identifier', name }, init }
-  }
-
-  // 表达式入口：先试赋值，否则按加减处理
-  parseExpression() { return this.parseAssignment() }
-  parseAssignment() {
-    const left = this.parseAdditive()
-    const t = this.peek()
-    if (t && t.type === 'op' && t.value === '=' && left.type === 'Identifier') {
-      this.next()
-      return { type: 'AssignmentExpression', operator: '=', left, right: this.parseExpression() }
-    }
-    return left
-  }
-  // 加减（+ -），左结合
-  parseAdditive() {
-    let node = this.parseMultiplicative()
-    while (this.peek() && this.peek().type === 'op' && ['+', '-'].includes(this.peek().value)) {
-      const op = this.next().value
-      node = { type: 'BinaryExpression', operator: op, left: node, right: this.parseMultiplicative() }
-    }
-    return node
-  }
-  // 乘除（* /），左结合，优先级高于加减
-  parseMultiplicative() {
-    let node = this.parseUnary()
-    while (this.peek() && this.peek().type === 'op' && ['*', '/'].includes(this.peek().value)) {
-      const op = this.next().value
-      node = { type: 'BinaryExpression', operator: op, left: node, right: this.parseUnary() }
-    }
-    return node
-  }
-  parseUnary() {
-    if (this.peek() && this.peek().type === 'op' && this.peek().value === '-') {
-      this.next()
-      return { type: 'UnaryExpression', operator: '-', argument: this.parseUnary() }
-    }
-    return this.parsePrimary()
-  }
-  parsePrimary() {
-    const t = this.next()
-    if (!t) throw new Error('语法错误：表达式不完整')
-    if (t.type === 'num') return { type: 'Literal', value: Number(t.value) }
-    if (t.type === 'string') return { type: 'Literal', value: t.value }
-    if (t.type === 'ident') {
-      if (this.peek() && this.peek().type === 'paren' && this.peek().value === '(') {
-        this.next() // 吃掉 (
-        const args = []
-        if (!(this.peek() && this.peek().type === 'paren' && this.peek().value === ')')) {
-          args.push(this.parseExpression())
-          while (this.peek() && this.peek().type === 'op' && this.peek().value === ',') { this.next(); args.push(this.parseExpression()) }
-        }
-        this.expect('paren', ')')
-        return { type: 'CallExpression', callee: { type: 'Identifier', name: t.value }, arguments: args }
-      }
-      return { type: 'Identifier', name: t.value }
-    }
-    if (t.type === 'paren' && t.value === '(') {
-      const e = this.parseExpression()
-      this.expect('paren', ')')
-      return e
-    }
-    throw new Error('语法错误：无法解析 ' + JSON.stringify(t))
-  }
-}
-
-// === 调用示例 ===
-function parse(src) { return new Parser(tokenize(src)).parseProgram() }
-
-const code = 'let x = 1 + 2 * 3; foo(10)'
-const ast = parse(code)
-console.log(JSON.stringify(ast, null, 2))
-// 关键结构（节选）：
-// BinaryExpression(+) 的 right 是 BinaryExpression(*)，说明 * 先于 + 结合：
-//   left: Literal(1)
-//   right: BinaryExpression(*)  -> left: Literal(2), right: Literal(3)
-// 以及 CallExpression(foo, args:[Literal(10)])
-\`\`\`
-
-### 名词解释
-
-**递归下降（Recursive Descent）**：一种手写语法分析的方法——为每一种语法结构写一个解析函数，函数内部再调用更细的函数去解析它的子结构。“递归”指的是这些函数常常互相调用（多为间接递归）。它是最容易让人“看懂”的解析写法。
-
-**运算符优先级（Precedence）**：不同运算符结合的先后顺序（例如 \`*\` 先于 \`+\`）。在递归下降里，优先级不是靠查表，而是靠“谁调用谁”自然表达：让 \`additive\` 去调用 \`multiplicative\`，就意味着 \`*\` 会在更内层先结合。
-
-### 课后练习
-
-**练习 1**：\`1 + 2 * 3\` 经过本节的 Parser 后，最外层的 \`BinaryExpression\` 节点的 \`operator\` 是什么？它的 \`right\` 子树根节点又是什么类型？
-> **答案**：最外层 \`operator\` 是 \`+\`；它的 \`right\` 是一棵 \`BinaryExpression\`，其 \`operator\` 为 \`*\`。这正说明 \`*\`（在内层）先于 \`+\`（在外层）结合，符合数学优先级。
-
-**练习 2**：如果把 \`parseAdditive\` 与 \`parseMultiplicative\` 的调用关系反过来（让 \`additive\` 不再调用 \`multiplicative\`，而是反过来），会发生什么？
-> **答案**：优先级会颠倒——\`*\` 会比 \`+\` 后结合。原本 \`1 + 2 * 3\` 会被错误解析成 \`(1 + 2) * 3\`，计算结果从 7 变成 9。这恰好证明：递归下降里“调用方向”直接决定了运算符优先级。
-
-### 本节小结（观点与完整描述）
-
-本节你写出的是编译原理里最经典、也最“肉眼可读”的语法分析器：**递归下降 = 为每种语法写个函数，函数间互相调用**。你不必死记那套文法，只要理解一件事——优先级是“喊谁来帮忙”喊出来的：\`additive\` 调用 \`multiplicative\`，所以 \`*\` 自然先于 \`+\` 结合。再配上 \`peek / next / expect\` 这三个小工具（看一眼、吃掉、断言并吃掉），你就能从 token 流里拼出任意复杂的树。\`loc\` 字段还能在出错时带上“第几行第几列”。但也要清醒：手写解析器只适合玩具语言；真实 JS 的边界情况多到吓人，所以下一节起我们把“解析”这步交给 acorn / @babel/parser，把精力留在真正有价值的第 ② 步——转换。`
+    "id": "app-l4",
+    "chapter": "hand",
+    "title": "手写递归下降 Parser：把 token 拼成 AST",
+    "minutes": 60,
+    "content": "### 本节目标\n\n- 理解“语法分析”如何把 token 流拼成树\n- 用手写**递归下降（Recursive Descent）**解析器，处理运算符优先级\n- 得到一个能跑、能打印 AST 的迷你语言\n\n上一节我们得到了 token 流。这一步叫**语法分析（Syntactic Analysis）**：按照“语法规则”把 token 组装成一棵 AST。\n\n我们用的写法叫**递归下降**：为每一种语法结构写一个函数，函数里再调用更细的函数。例如“表达式”分三层：\n\n```text\n表达式 expression  =  赋值 assignment\n赋值   assignment  =  Identifier '=' 表达式  |  加减 additive\n加减   additive    =  乘除 multiplicative (('+'|'-') 乘除)*\n乘除   multiplicative = 一元 unary (('*'|'/') 一元)*\n一元   unary      =  ('-')? 基础 primary\n基础   primary    =  数字 | 字符串 | 标识符 | 调用 call | '(' 表达式 ')'\n调用   call       =  Identifier '(' (表达式 (',' 表达式)*)? ')'\n```\n\n**优先级怎么体现？** 看调用顺序：`additive` 调用 `multiplicative`，所以 `*` 比 `+` 先结合——`1 + 2 * 3` 自然解析成 `1 + (2 * 3)`。这就是“递归下降天然表达优先级”。\n\n### 动手：一个能解析算术/变量/调用的 Parser\n\n```js\n// 运行环境：Node.js 18+（无需任何依赖，依赖上一节的 tokenize）\n// 运行方式：把整段保存为 app-l4.cjs，终端执行  node app-l4.cjs\n// （这里把 tokenize 一起带上，保证单文件可运行）\n\nfunction tokenize(src) {\n  const tokens = []\n  let i = 0, buf = '', state = 'idle'\n  const isDigit = (c) => c >= '0' && c <= '9'\n  const isIdentStart = (c) => /[A-Za-z_$]/.test(c)\n  const isIdentPart = (c) => /[A-Za-z0-9_$]/.test(c)\n  const isSpace = (c) => c === ' ' || c === '\\n' || c === '\\t' || c === '\\r'\n  const flush = (type) => { if (buf) { tokens.push({ type, value: buf }); buf = '' } }\n  while (i < src.length) {\n    const c = src[i]\n    if (c === '/' && src[i + 1] === '/') { flush(state === 'idle' ? null : state); while (i < src.length && src[i] !== '\\n') i++; state = 'idle'; continue }\n    if (isSpace(c)) { flush(state === 'idle' ? null : state); state = 'idle'; i++; continue }\n    if (isDigit(c)) { state = 'num'; buf += c; i++; continue }\n    if (isIdentStart(c)) { state = 'ident'; buf += c; i++; continue }\n    if (isIdentPart(c) && state !== 'idle') { buf += c; i++; continue }\n    const two = src.slice(i, i + 2)\n    const multiOps = ['==', '===', '&&', '||', '<=', '>=', '!=', '!==']\n    if (multiOps.includes(two)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: two }); state = 'idle'; i += 2; continue }\n    if ('+-*/%=<>!'.includes(c)) { flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue }\n    if (c === '(' || c === ')') { flush(state === 'idle' ? null : state); tokens.push({ type: 'paren', value: c }); state = 'idle'; i++; continue }\n    flush(state === 'idle' ? null : state); tokens.push({ type: 'op', value: c }); state = 'idle'; i++; continue\n  }\n  flush(state === 'idle' ? null : state)\n  const KEYWORDS = ['let', 'const', 'var', 'function', 'return', 'if', 'else']\n  return tokens.map((t) => t.type === 'ident' && KEYWORDS.includes(t.value) ? { type: 'keyword', value: t.value } : t)\n}\n\n// ---- 递归下降解析器 ----\nclass Parser {\n  constructor(tokens) { this.tokens = tokens; this.pos = 0 }\n  peek() { return this.tokens[this.pos] }\n  next() { return this.tokens[this.pos++] }\n  expect(type, value) {\n    const t = this.next()\n    if (!t || t.type !== type || (value !== undefined && t.value !== value))\n      throw new Error('语法错误：期望 ' + (value || type) + '，但得到 ' + JSON.stringify(t))\n    return t\n  }\n\n  // 程序 = 多条语句\n  parseProgram() {\n    const body = []\n    while (this.pos < this.tokens.length) body.push(this.parseStatement())\n    return { type: 'Program', body }\n  }\n  parseStatement() {\n    const t = this.peek()\n    let stmt\n    if (t && t.type === 'keyword' && ['let', 'const', 'var'].includes(t.value))\n      stmt = this.parseVarDecl()\n    else\n      stmt = { type: 'ExpressionStatement', expression: this.parseExpression() }\n    // 消费可选的语句结束符 ;（不强制，兼容无分号写法）\n    if (this.peek() && this.peek().type === 'op' && this.peek().value === ';') this.next()\n    return stmt\n  }\n  parseVarDecl() {\n    const kind = this.next().value\n    const name = this.expect('ident').value\n    this.expect('op', '=')\n    const init = this.parseExpression()\n    return { type: 'VariableDeclaration', kind, id: { type: 'Identifier', name }, init }\n  }\n\n  // 表达式入口：先试赋值，否则按加减处理\n  parseExpression() { return this.parseAssignment() }\n  parseAssignment() {\n    const left = this.parseAdditive()\n    const t = this.peek()\n    if (t && t.type === 'op' && t.value === '=' && left.type === 'Identifier') {\n      this.next()\n      return { type: 'AssignmentExpression', operator: '=', left, right: this.parseExpression() }\n    }\n    return left\n  }\n  // 加减（+ -），左结合\n  parseAdditive() {\n    let node = this.parseMultiplicative()\n    while (this.peek() && this.peek().type === 'op' && ['+', '-'].includes(this.peek().value)) {\n      const op = this.next().value\n      node = { type: 'BinaryExpression', operator: op, left: node, right: this.parseMultiplicative() }\n    }\n    return node\n  }\n  // 乘除（* /），左结合，优先级高于加减\n  parseMultiplicative() {\n    let node = this.parseUnary()\n    while (this.peek() && this.peek().type === 'op' && ['*', '/'].includes(this.peek().value)) {\n      const op = this.next().value\n      node = { type: 'BinaryExpression', operator: op, left: node, right: this.parseUnary() }\n    }\n    return node\n  }\n  parseUnary() {\n    if (this.peek() && this.peek().type === 'op' && this.peek().value === '-') {\n      this.next()\n      return { type: 'UnaryExpression', operator: '-', argument: this.parseUnary() }\n    }\n    return this.parsePrimary()\n  }\n  parsePrimary() {\n    const t = this.next()\n    if (!t) throw new Error('语法错误：表达式不完整')\n    if (t.type === 'num') return { type: 'Literal', value: Number(t.value) }\n    if (t.type === 'string') return { type: 'Literal', value: t.value }\n    if (t.type === 'ident') {\n      if (this.peek() && this.peek().type === 'paren' && this.peek().value === '(') {\n        this.next() // 吃掉 (\n        const args = []\n        if (!(this.peek() && this.peek().type === 'paren' && this.peek().value === ')')) {\n          args.push(this.parseExpression())\n          while (this.peek() && this.peek().type === 'op' && this.peek().value === ',') { this.next(); args.push(this.parseExpression()) }\n        }\n        this.expect('paren', ')')\n        return { type: 'CallExpression', callee: { type: 'Identifier', name: t.value }, arguments: args }\n      }\n      return { type: 'Identifier', name: t.value }\n    }\n    if (t.type === 'paren' && t.value === '(') {\n      const e = this.parseExpression()\n      this.expect('paren', ')')\n      return e\n    }\n    throw new Error('语法错误：无法解析 ' + JSON.stringify(t))\n  }\n}\n\n// === 调用示例 ===\nfunction parse(src) { return new Parser(tokenize(src)).parseProgram() }\n\nconst code = 'let x = 1 + 2 * 3; foo(10)'\nconst ast = parse(code)\nconsole.log(JSON.stringify(ast, null, 2))\n// 关键结构（节选）：\n// BinaryExpression(+) 的 right 是 BinaryExpression(*)，说明 * 先于 + 结合：\n//   left: Literal(1)\n//   right: BinaryExpression(*)  -> left: Literal(2), right: Literal(3)\n// 以及 CallExpression(foo, args:[Literal(10)])\n```\n\n### 名词解释\n\n**递归下降（Recursive Descent）**：一种手写语法分析的方法——为每一种语法结构写一个解析函数，函数内部再调用更细的函数去解析它的子结构。“递归”指的是这些函数常常互相调用（多为间接递归）。它是最容易让人“看懂”的解析写法。\n\n**运算符优先级（Precedence）**：不同运算符结合的先后顺序（例如 `*` 先于 `+`）。在递归下降里，优先级不是靠查表，而是靠“谁调用谁”自然表达：让 `additive` 去调用 `multiplicative`，就意味着 `*` 会在更内层先结合。\n\n### 课后练习\n\n**练习 1**：`1 + 2 * 3` 经过本节的 Parser 后，最外层的 `BinaryExpression` 节点的 `operator` 是什么？它的 `right` 子树根节点又是什么类型？\n> **答案**：最外层 `operator` 是 `+`；它的 `right` 是一棵 `BinaryExpression`，其 `operator` 为 `*`。这正说明 `*`（在内层）先于 `+`（在外层）结合，符合数学优先级。\n\n**练习 2**：如果把 `parseAdditive` 与 `parseMultiplicative` 的调用关系反过来（让 `additive` 不再调用 `multiplicative`，而是反过来），会发生什么？\n> **答案**：优先级会颠倒——`*` 会比 `+` 后结合。原本 `1 + 2 * 3` 会被错误解析成 `(1 + 2) * 3`，计算结果从 7 变成 9。这恰好证明：递归下降里“调用方向”直接决定了运算符优先级。\n\n### 本节小结（观点与完整描述）\n\n本节你写出的是编译原理里最经典、也最“肉眼可读”的语法分析器：**递归下降 = 为每种语法写个函数，函数间互相调用**。你不必死记那套文法，只要理解一件事——优先级是“喊谁来帮忙”喊出来的：`additive` 调用 `multiplicative`，所以 `*` 自然先于 `+` 结合。再配上 `peek / next / expect` 这三个小工具（看一眼、吃掉、断言并吃掉），你就能从 token 流里拼出任意复杂的树。`loc` 字段还能在出错时带上“第几行第几列”。但也要清醒：手写解析器只适合玩具语言；真实 JS 的边界情况多到吓人，所以下一节起我们把“解析”这步交给 acorn / @babel/parser，把精力留在真正有价值的第 ② 步——转换。"
   },
   {
-    id: 'app-l5',
-    chapter: 'tools',
-    title: '用 acorn 解析真实 JS + 自己写 AST 遍历器',
-    minutes: 55,
-    content: `### 本节目标
-
-- 用成熟的 **acorn** 把真实 JS 代码解析成 AST（不用再手写解析器）
-- 理解“遍历 AST”就是在树上走一遍、对每个节点做点事
-- 亲手写一个**不依赖任何库**的通用遍历器（带 enter / exit 两次回调）
-
-从第 3、4 节我们亲手写了解析器，但真实项目里你应该用现成工具。最轻量的是 **acorn**（webpack、ESLint 底层也用它）：
-
-\`\`\`js
-const { parse } = require('acorn')
-const ast = parse('const double = (n) => n * 2', { ecmaVersion: 2022 })
-\`\`\`
-
-\`acorn\` 产出的 AST 遵循 **ESTree** 规范（和 AST Explorer 默认一致），所以你在 Explorer 里看到的节点类型，和代码里拿到的是同一套。
-
-**遍历（Traverse）** 就是“从根节点出发，按某种顺序访问每一个节点”。最常见的是**深度优先**：先往下钻到叶子，再往回退。遍历时我们常给每个节点两次机会——**进入（enter）** 和 **离开（exit）**，像走进一棵树再走出来。
-
-### 动手 A：用 acorn 解析（需要安装）
-
-\`\`\`js
-// 运行环境：Node.js 18+，需要先安装依赖： npm install acorn
-// 运行方式：把整段保存为 app-l5a.cjs，终端执行  node app-l5a.cjs
-const { parse } = require('acorn')
-
-const code = 'const double = (n) => n * 2'
-const ast = parse(code, { ecmaVersion: 2022, locations: true })
-console.log('根节点类型：', ast.type)            // Program
-console.log('第 1 条语句：', ast.body[0].type)   // VariableDeclaration
-console.log('函数体是箭头函数：', ast.body[0].declarations[0].init.type) // ArrowFunctionExpression
-
-// === 调用示例说明 ===
-// parse(code, opts) -> 返回 ESTree 格式的 AST
-//   ecmaVersion: 支持到哪个 JS 版本（2022 支持箭头函数等现代语法）
-//   locations: true -> 每个节点带 loc（行/列），报错定位用
-\`\`\`
-
-### 动手 B：自己写一个通用遍历器（零依赖，重点！）
-
-这个 \`walk\` 函数**不依赖任何库**，能遍历任意 AST（包括 acorn 产出的）。它体现了 Babel 的 visitor 思想雏形：进入节点时调 \`enter\`，离开时调 \`exit\`。
-
-\`\`\`js
-// 运行环境：Node.js 18+（无需任何依赖）
-// 运行方式：把整段保存为 app-l5b.cjs，终端执行  node app-l5b.cjs
-// （为省事这里用一颗手写 AST 演示；换成 acorn 的 AST 同样能跑）
-
-// 一颗示例 AST
-const ast = {
-  type: 'Program',
-  body: [{
-    type: 'VariableDeclaration', kind: 'const',
-    declarations: [{
-      type: 'VariableDeclarator',
-      id: { type: 'Identifier', name: 'double' },
-      init: {
-        type: 'ArrowFunctionExpression',
-        params: [{ type: 'Identifier', name: 'n' }],
-        body: {
-          type: 'BinaryExpression', operator: '*',
-          left: { type: 'Identifier', name: 'n' },
-          right: { type: 'Literal', value: 2 }
-        }
-      }
-    }]
-  }]
-}
-
-// 通用遍历器：visitor 可包含 enter / exit 两个回调
-// 约定：enter(node, parent) 在“进入节点前”调用；exit(node, parent) 在“处理完子节点后”调用
-function walk(node, visitor, parent) {
-  if (!node || typeof node !== 'object' || !node.type) return
-  if (visitor.enter) visitor.enter(node, parent)
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue
-    const val = node[key]
-    if (Array.isArray(val)) val.forEach((child) => walk(child, visitor, node))
-    else if (val && typeof val === 'object' && val.type) walk(val, visitor, node)
-  }
-  if (visitor.exit) visitor.exit(node, parent)
-}
-
-// === 调用示例 1：统计每种节点出现次数 ===
-const counter = {}
-walk(ast, {
-  enter(node) { counter[node.type] = (counter[node.type] || 0) + 1 }
-})
-console.log('节点计数：', counter)
-// { Program:1, VariableDeclaration:1, VariableDeclarator:1,
-//   Identifier:3, ArrowFunctionExpression:1, BinaryExpression:1, Literal:1 }
-
-// === 调用示例 2：用 enter/exit 看遍历顺序（先入后出，像走树）===
-walk(ast, {
-  enter(node) { console.log('↓ enter', node.type) },
-  exit(node) { console.log('↑ exit ', node.type) }
-})
-// 输出顺序：Program → VariableDeclaration → VariableDeclarator → Identifier(double)
-//          → ArrowFunctionExpression → Identifier(n) → BinaryExpression → Identifier(n) → Literal(2)
-//          ……然后逐层 exit 退回来
-\`\`\`
-
-### 名词解释
-
-**遍历（Traverse）**：从根节点出发，按某种顺序访问树上的每一个节点。最常用的是“深度优先”——先一路往下钻到最深的叶子，再逐层往回退。你可以把它想象成“按照固定路线把一棵树的每个叉点都踩一遍”。
-
-**enter / exit（进入 / 离开）**：遍历时给每个节点两次机会。进入节点之前调用 \`enter\`，把它所有子节点都处理完之后调用 \`exit\`。就像你走进一棵树、再走出来，所以叫 enter（进）和 exit（出）。很多修改逻辑要“进去时记一笔、出来时再处理”，靠的就是这两阶段。
-
-### 课后练习
-
-**练习 1**：用本节手写的 \`walk\` 遍历 app-l5 的示例 AST（含 \`double\`、\`n\`、\`n\`），\`Identifier\` 节点会被统计到几次？
-> **答案**：3 次。分别是变量名 \`double\`、箭头函数参数 \`n\`、以及二元表达式里的 \`n\`。注意：即便两个 \`n\` 语义不同（一个是参数、一个是引用），在 AST 层面它们都是 \`Identifier\` 节点，各计一次。
-
-**练习 2**：如果把 \`walk\` 里的递归“只处理第一层子节点就返回”（不再对子节点继续 \`walk\`），会发生什么？
-> **答案**：遍历会不完整——只有根节点的直接子节点被访问，\`BinaryExpression\` 内部的 \`Literal(2)\`、箭头函数体内的节点等深层节点永远碰不到。这正是递归（持续往深处走）对树遍历必不可少的原因。
-
-### 本节小结（观点与完整描述）
-
-本节完成了从“手写解析”到“用工具 + 理解遍历”的关键转折。你学到的第一点是：真实项目里别再手写解析器，acorn / @babel/parser 已经把你想不到的边界情况全处理了，直接 \`parse(code)\` 拿到 ESTree 规范的 AST 即可。第二点更重要：**遍历就是在树上走一遍**，而 \`enter/exit\` 两次回调让你能“进去时改、出来时再改”，这是几乎所有 AST 操作的基础动作。你亲手写的那 30 行 \`walk\`，其实就是下一节 \`babel-traverse\` 的“原理缩略版”——下一节用库，写法几乎一样，只是它还会额外把“路径”直接递到你手上。先吃透这个手写版，库用起来才不会是黑盒。`
+    "id": "app-l5",
+    "chapter": "tools",
+    "title": "用 acorn 解析真实 JS + 自己写 AST 遍历器",
+    "minutes": 55,
+    "content": "### 本节目标\n\n- 用成熟的 **acorn** 把真实 JS 代码解析成 AST（不用再手写解析器）\n- 理解“遍历 AST”就是在树上走一遍、对每个节点做点事\n- 亲手写一个**不依赖任何库**的通用遍历器（带 enter / exit 两次回调）\n\n从第 3、4 节我们亲手写了解析器，但真实项目里你应该用现成工具。最轻量的是 **acorn**（webpack、ESLint 底层也用它）：\n\n```js\nconst { parse } = require('acorn')\nconst ast = parse('const double = (n) => n * 2', { ecmaVersion: 2022 })\n```\n\n`acorn` 产出的 AST 遵循 **ESTree** 规范（和 AST Explorer 默认一致），所以你在 Explorer 里看到的节点类型，和代码里拿到的是同一套。\n\n**遍历（Traverse）** 就是“从根节点出发，按某种顺序访问每一个节点”。最常见的是**深度优先**：先往下钻到叶子，再往回退。遍历时我们常给每个节点两次机会——**进入（enter）** 和 **离开（exit）**，像走进一棵树再走出来。\n\n### 动手 A：用 acorn 解析（需要安装）\n\n```js\n// 运行环境：Node.js 18+，需要先安装依赖： npm install acorn\n// 运行方式：把整段保存为 app-l5a.cjs，终端执行  node app-l5a.cjs\nconst { parse } = require('acorn')\n\nconst code = 'const double = (n) => n * 2'\nconst ast = parse(code, { ecmaVersion: 2022, locations: true })\nconsole.log('根节点类型：', ast.type)            // Program\nconsole.log('第 1 条语句：', ast.body[0].type)   // VariableDeclaration\nconsole.log('函数体是箭头函数：', ast.body[0].declarations[0].init.type) // ArrowFunctionExpression\n\n// === 调用示例说明 ===\n// parse(code, opts) -> 返回 ESTree 格式的 AST\n//   ecmaVersion: 支持到哪个 JS 版本（2022 支持箭头函数等现代语法）\n//   locations: true -> 每个节点带 loc（行/列），报错定位用\n```\n\n### 动手 B：自己写一个通用遍历器（零依赖，重点！）\n\n这个 `walk` 函数**不依赖任何库**，能遍历任意 AST（包括 acorn 产出的）。它体现了 Babel 的 visitor 思想雏形：进入节点时调 `enter`，离开时调 `exit`。\n\n```js\n// 运行环境：Node.js 18+（无需任何依赖）\n// 运行方式：把整段保存为 app-l5b.cjs，终端执行  node app-l5b.cjs\n// （为省事这里用一颗手写 AST 演示；换成 acorn 的 AST 同样能跑）\n\n// 一颗示例 AST\nconst ast = {\n  type: 'Program',\n  body: [{\n    type: 'VariableDeclaration', kind: 'const',\n    declarations: [{\n      type: 'VariableDeclarator',\n      id: { type: 'Identifier', name: 'double' },\n      init: {\n        type: 'ArrowFunctionExpression',\n        params: [{ type: 'Identifier', name: 'n' }],\n        body: {\n          type: 'BinaryExpression', operator: '*',\n          left: { type: 'Identifier', name: 'n' },\n          right: { type: 'Literal', value: 2 }\n        }\n      }\n    }]\n  }]\n}\n\n// 通用遍历器：visitor 可包含 enter / exit 两个回调\n// 约定：enter(node, parent) 在“进入节点前”调用；exit(node, parent) 在“处理完子节点后”调用\nfunction walk(node, visitor, parent) {\n  if (!node || typeof node !== 'object' || !node.type) return\n  if (visitor.enter) visitor.enter(node, parent)\n  for (const key of Object.keys(node)) {\n    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc') continue\n    const val = node[key]\n    if (Array.isArray(val)) val.forEach((child) => walk(child, visitor, node))\n    else if (val && typeof val === 'object' && val.type) walk(val, visitor, node)\n  }\n  if (visitor.exit) visitor.exit(node, parent)\n}\n\n// === 调用示例 1：统计每种节点出现次数 ===\nconst counter = {}\nwalk(ast, {\n  enter(node) { counter[node.type] = (counter[node.type] || 0) + 1 }\n})\nconsole.log('节点计数：', counter)\n// { Program:1, VariableDeclaration:1, VariableDeclarator:1,\n//   Identifier:3, ArrowFunctionExpression:1, BinaryExpression:1, Literal:1 }\n\n// === 调用示例 2：用 enter/exit 看遍历顺序（先入后出，像走树）===\nwalk(ast, {\n  enter(node) { console.log('↓ enter', node.type) },\n  exit(node) { console.log('↑ exit ', node.type) }\n})\n// 输出顺序：Program → VariableDeclaration → VariableDeclarator → Identifier(double)\n//          → ArrowFunctionExpression → Identifier(n) → BinaryExpression → Identifier(n) → Literal(2)\n//          ……然后逐层 exit 退回来\n```\n\n### 名词解释\n\n**遍历（Traverse）**：从根节点出发，按某种顺序访问树上的每一个节点。最常用的是“深度优先”——先一路往下钻到最深的叶子，再逐层往回退。你可以把它想象成“按照固定路线把一棵树的每个叉点都踩一遍”。\n\n**enter / exit（进入 / 离开）**：遍历时给每个节点两次机会。进入节点之前调用 `enter`，把它所有子节点都处理完之后调用 `exit`。就像你走进一棵树、再走出来，所以叫 enter（进）和 exit（出）。很多修改逻辑要“进去时记一笔、出来时再处理”，靠的就是这两阶段。\n\n### 课后练习\n\n**练习 1**：用本节手写的 `walk` 遍历 app-l5 的示例 AST（含 `double`、`n`、`n`），`Identifier` 节点会被统计到几次？\n> **答案**：3 次。分别是变量名 `double`、箭头函数参数 `n`、以及二元表达式里的 `n`。注意：即便两个 `n` 语义不同（一个是参数、一个是引用），在 AST 层面它们都是 `Identifier` 节点，各计一次。\n\n**练习 2**：如果把 `walk` 里的递归“只处理第一层子节点就返回”（不再对子节点继续 `walk`），会发生什么？\n> **答案**：遍历会不完整——只有根节点的直接子节点被访问，`BinaryExpression` 内部的 `Literal(2)`、箭头函数体内的节点等深层节点永远碰不到。这正是递归（持续往深处走）对树遍历必不可少的原因。\n\n### 本节小结（观点与完整描述）\n\n本节完成了从“手写解析”到“用工具 + 理解遍历”的关键转折。你学到的第一点是：真实项目里别再手写解析器，acorn / @babel/parser 已经把你想不到的边界情况全处理了，直接 `parse(code)` 拿到 ESTree 规范的 AST 即可。第二点更重要：**遍历就是在树上走一遍**，而 `enter/exit` 两次回调让你能“进去时改、出来时再改”，这是几乎所有 AST 操作的基础动作。你亲手写的那 30 行 `walk`，其实就是下一节 `babel-traverse` 的“原理缩略版”——下一节用库，写法几乎一样，只是它还会额外把“路径”直接递到你手上。先吃透这个手写版，库用起来才不会是黑盒。"
   },
   {
-    id: 'app-l6',
-    chapter: 'babel',
-    title: 'babel-traverse 遍历 + Paths（访问者进/出、路径对象）',
-    minutes: 60,
-    content: `### 本节目标
-
-- 用 **@babel/traverse** 遍历真实 JS 的 AST
-- 理解 **Visitor（访问者）** 写法：\`Identifier(path) {}\` 就是对 Identifier 节点做事
-- 理解 **Path（路径）**：它不只是节点，还带着“节点在哪、父是谁、怎么改”的信息
-
-Babel 的遍历比我们手写的 \`walk\` 强在哪？三个点：
-
-1. **Visitor 按节点类型分发**：你写 \`Identifier(path) {}\`，Babel 自动在遍历到每个 \`Identifier\` 节点时调用它，不用自己 \`if (node.type === ...)\`。
-2. **enter / exit 两阶段**：\`Identifier: { enter(path) {}, exit(path) {} }\`。
-3. **Path 对象**：你拿到的 \`path\` 不是裸节点，而是“节点 + 它的上下文”。通过 \`path\` 你能安全地改树——比如 \`path.replaceWith(...)\`、\`path.remove()\`，Babel 会帮你维护整棵树的连贯性。
-
-> 心智模型：**Path = 节点在树上的“路径 + 身份证”**。它知道“我是谁（path.node）、我爸是谁（path.parent）、我从哪个 key 挂在我爸身上（path.key）、我有多少个兄弟（path.container）”。改树只通过 path，别直接改 node，否则树会“对不齐”。
-
-### 动手：用 babel-traverse 统计并改名
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse
-// 运行方式：把整段保存为 app-l6.cjs，终端执行  node app-l6.cjs
-const parser = require('@babel/parser')
-const traverse = require('@babel/traverse').default
-
-const code = 'const total = price * price + 1'
-const ast = parser.parse(code)
-
-// ① 统计各类型节点数量（对比上一节手写的 walk，写法几乎一样）
-const counter = {}
-traverse(ast, {
-  enter(path) { counter[path.node.type] = (counter[path.node.type] || 0) + 1 }
-})
-console.log('节点计数：', counter)
-// { Program:1, VariableDeclaration:1, VariableDeclarator:1,
-//   Identifier:3, NumericLiteral:2, BinaryExpression:2 }
-
-// ② 把所有标识符 price 改名为 unitPrice（注意：通过 path 改，不直接改 node）
-traverse(ast, {
-  Identifier(path) {
-    if (path.node.name === 'price') path.node.name = 'unitPrice'
-  }
-})
-console.log('改名后：', code.replace(/price/g, 'unitPrice'))
-// 说明：这里用字符串 replace 仅用于“对照展示”；真实改名请用下面的代码生成（见第 10 节）
-\`\`\`
-
-### 更完整的 Visitor 写法（enter / exit + 路径信息）
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse
-// 运行方式：把整段保存为 app-l6b.cjs，终端执行  node app-l6b.cjs
-const parser = require('@babel/parser')
-const traverse = require('@babel/traverse').default
-
-const ast = parser.parse('const r = a * b + c')
-// 用 enter/exit 两阶段，演示“遍历顺序”与“path.parent 拿父节点”
-traverse(ast, {
-  BinaryExpression: {
-    enter(path) {
-      console.log('↓ 进入二元表达式，运算符 =', path.node.operator)
-      console.log('  它的父节点类型 =', path.parent.type)
-    },
-    exit(path) {
-      console.log('↑ 离开二元表达式')
-    }
-  }
-})
-// 输出：先进入外层的 +，再进入内层的 *，再依次 exit；
-//      每次都能通过 path.parent 拿到“上一层是谁”。
-\`\`\`
-
-### 名词解释
-
-**Visitor（访问者）**：一种“把‘对不同节点做什么’从‘怎么遍历’里分离出来”的设计模式。你只写 \`Identifier(path) {}\`，Babel 就会在遍历到每个 \`Identifier\` 节点时自动调用它，你不用自己写 \`if (node.type === 'Identifier')\`。遍历细节被藏起来了，你只管“遇到某类节点就干什么”。
-
-**Path（路径）**：Babel 遍历时传给你的不是裸节点，而是“节点 + 它的上下文”。通过 \`path\` 你能知道“我是谁（\`path.node\`）、我爸是谁（\`path.parent\`）、我从哪个 key 挂在我爸身上（\`path.key\`）、我有多少兄弟（\`path.container\`）”。一句话：**Path = 节点在树上的“地址 + 身份证”**。
-
-### 课后练习
-
-**练习 1**：在 app-l6 的统计遍历里，如果想“只数最外层的 \`BinaryExpression\`、不算嵌套在它里面的”，该怎么改？
-> **答案**：在 \`BinaryExpression\` 的回调里用 \`path.parent\` 判断——只有 \`path.parent.type !== 'BinaryExpression'\` 时才计数。因为内层 \`+\` 的父节点是外层 \`+\`，会被这个条件排除掉。
-
-**练习 2**：教程反复强调“改树要用 \`path\`，不要直接改 \`node\`”，根本原因是什么？
-> **答案**：直接改 \`node\` 只是改了这一个对象，但树的整体关联（父节点对子节点的引用、作用域信息、Babel 维护的各种元数据）不会同步，\`path.replaceWith / remove\` 这类 API 则会一并维护这些关联，保证改完树仍然“对得齐”。直接改 node 轻则某些查询失效，重则后续遍历崩溃。
-
-### 本节小结（观点与完整描述）
-
-本节让你从“能遍历”升级到“会改树”。\`traverse(ast, { 节点类型(path){} })\` 这个 Visitor 写法，核心价值是**按类型自动分发**——你再也不用手写一堆 \`if (node.type === ...)\` 去判断当前节点，Babel 替你路由好了。而真正让你“安全地改”的，是 \`Path\`：它不是裸节点，而是带着上下文的“地址”。所有修改都必须通过 \`path.replaceWith / remove\` 这类 API 走，Babel 会帮你维护整棵树的连贯性；直接改 \`node\` 就像不通知物业就拆墙，房子迟早塌。把 Visitor 的“自动分发”和 Path 的“安全修改”这两点吃透，下一节学怎么“造”出新节点就水到渠成了。`
+    "id": "app-l6",
+    "chapter": "babel",
+    "title": "babel-traverse 遍历 + Paths（访问者进/出、路径对象）",
+    "minutes": 60,
+    "content": "### 本节目标\n\n- 用 **@babel/traverse** 遍历真实 JS 的 AST\n- 理解 **Visitor（访问者）** 写法：`Identifier(path) {}` 就是对 Identifier 节点做事\n- 理解 **Path（路径）**：它不只是节点，还带着“节点在哪、父是谁、怎么改”的信息\n\nBabel 的遍历比我们手写的 `walk` 强在哪？三个点：\n\n1. **Visitor 按节点类型分发**：你写 `Identifier(path) {}`，Babel 自动在遍历到每个 `Identifier` 节点时调用它，不用自己 `if (node.type === ...)`。\n2. **enter / exit 两阶段**：`Identifier: { enter(path) {}, exit(path) {} }`。\n3. **Path 对象**：你拿到的 `path` 不是裸节点，而是“节点 + 它的上下文”。通过 `path` 你能安全地改树——比如 `path.replaceWith(...)`、`path.remove()`，Babel 会帮你维护整棵树的连贯性。\n\n> 心智模型：**Path = 节点在树上的“路径 + 身份证”**。它知道“我是谁（path.node）、我爸是谁（path.parent）、我从哪个 key 挂在我爸身上（path.key）、我有多少个兄弟（path.container）”。改树只通过 path，别直接改 node，否则树会“对不齐”。\n\n### 动手：用 babel-traverse 统计并改名\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse\n// 运行方式：把整段保存为 app-l6.cjs，终端执行  node app-l6.cjs\nconst parser = require('@babel/parser')\nconst traverse = require('@babel/traverse').default\n\nconst code = 'const total = price * price + 1'\nconst ast = parser.parse(code)\n\n// ① 统计各类型节点数量（对比上一节手写的 walk，写法几乎一样）\nconst counter = {}\ntraverse(ast, {\n  enter(path) { counter[path.node.type] = (counter[path.node.type] || 0) + 1 }\n})\nconsole.log('节点计数：', counter)\n// { Program:1, VariableDeclaration:1, VariableDeclarator:1,\n//   Identifier:3, NumericLiteral:2, BinaryExpression:2 }\n\n// ② 把所有标识符 price 改名为 unitPrice（注意：通过 path 改，不直接改 node）\ntraverse(ast, {\n  Identifier(path) {\n    if (path.node.name === 'price') path.node.name = 'unitPrice'\n  }\n})\nconsole.log('改名后：', code.replace(/price/g, 'unitPrice'))\n// 说明：这里用字符串 replace 仅用于“对照展示”；真实改名请用下面的代码生成（见第 10 节）\n```\n\n### 更完整的 Visitor 写法（enter / exit + 路径信息）\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse\n// 运行方式：把整段保存为 app-l6b.cjs，终端执行  node app-l6b.cjs\nconst parser = require('@babel/parser')\nconst traverse = require('@babel/traverse').default\n\nconst ast = parser.parse('const r = a * b + c')\n// 用 enter/exit 两阶段，演示“遍历顺序”与“path.parent 拿父节点”\ntraverse(ast, {\n  BinaryExpression: {\n    enter(path) {\n      console.log('↓ 进入二元表达式，运算符 =', path.node.operator)\n      console.log('  它的父节点类型 =', path.parent.type)\n    },\n    exit(path) {\n      console.log('↑ 离开二元表达式')\n    }\n  }\n})\n// 输出：先进入外层的 +，再进入内层的 *，再依次 exit；\n//      每次都能通过 path.parent 拿到“上一层是谁”。\n```\n\n### 名词解释\n\n**Visitor（访问者）**：一种“把‘对不同节点做什么’从‘怎么遍历’里分离出来”的设计模式。你只写 `Identifier(path) {}`，Babel 就会在遍历到每个 `Identifier` 节点时自动调用它，你不用自己写 `if (node.type === 'Identifier')`。遍历细节被藏起来了，你只管“遇到某类节点就干什么”。\n\n**Path（路径）**：Babel 遍历时传给你的不是裸节点，而是“节点 + 它的上下文”。通过 `path` 你能知道“我是谁（`path.node`）、我爸是谁（`path.parent`）、我从哪个 key 挂在我爸身上（`path.key`）、我有多少兄弟（`path.container`）”。一句话：**Path = 节点在树上的“地址 + 身份证”**。\n\n### 课后练习\n\n**练习 1**：在 app-l6 的统计遍历里，如果想“只数最外层的 `BinaryExpression`、不算嵌套在它里面的”，该怎么改？\n> **答案**：在 `BinaryExpression` 的回调里用 `path.parent` 判断——只有 `path.parent.type !== 'BinaryExpression'` 时才计数。因为内层 `+` 的父节点是外层 `+`，会被这个条件排除掉。\n\n**练习 2**：教程反复强调“改树要用 `path`，不要直接改 `node`”，根本原因是什么？\n> **答案**：直接改 `node` 只是改了这一个对象，但树的整体关联（父节点对子节点的引用、作用域信息、Babel 维护的各种元数据）不会同步，`path.replaceWith / remove` 这类 API 则会一并维护这些关联，保证改完树仍然“对得齐”。直接改 node 轻则某些查询失效，重则后续遍历崩溃。\n\n### 本节小结（观点与完整描述）\n\n本节让你从“能遍历”升级到“会改树”。`traverse(ast, { 节点类型(path){} })` 这个 Visitor 写法，核心价值是**按类型自动分发**——你再也不用手写一堆 `if (node.type === ...)` 去判断当前节点，Babel 替你路由好了。而真正让你“安全地改”的，是 `Path`：它不是裸节点，而是带着上下文的“地址”。所有修改都必须通过 `path.replaceWith / remove` 这类 API 走，Babel 会帮你维护整棵树的连贯性；直接改 `node` 就像不通知物业就拆墙，房子迟早塌。把 Visitor 的“自动分发”和 Path 的“安全修改”这两点吃透，下一节学怎么“造”出新节点就水到渠成了。"
   },
   {
-    id: 'app-l7',
-    chapter: 'babel',
-    title: '@babel/types 构造与修改节点',
-    minutes: 55,
-    content: `### 本节目标
-
-- 用 **@babel/types（t）** 安全地“造”出新节点
-- 掌握三类常用 API：**builders（构造器）/ validators（校验器）/ 直接替换**
-- 理解为什么“手写 AST 对象”不如“用 t.xxx() 构造”稳妥
-
-上一节我们直接改了 \`path.node.name\`。但**新建一个节点**时，千万别手写 \`{ type: 'Identifier', name: 'x' }\`——容易漏字段、拼错类型。Babel 提供 \`@babel/types\`（社区简称 \`t\`）来“按规范造节点”：
-
-- **builders**：\`t.identifier('x')\`、\`t.stringLiteral('hi')\`、\`t.binaryExpression('+', a, b)\` —— 每种节点一个构造器，参数就是它必需的子节点。
-- **validators**：\`t.isIdentifier(node)\`、\`t.isStringLiteral(node)\` —— 判断节点类型，比手写 \`node.type === 'Identifier'\` 更可靠。
-
-> 心智模型：\`t\` 是“AST 节点的正规工厂”。你只要说“给我一个标识符叫 x”，工厂保证产出的节点字段齐全、符合规范。
-
-### 动手：用 t 构造节点并替换
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse @babel/types
-// 运行方式：把整段保存为 app-l7.cjs，终端执行  node app-l7.cjs
-const parser = require('@babel/parser')
-const traverse = require('@babel/traverse').default
-const t = require('@babel/types')
-
-const code = 'const area = radius * radius'
-const ast = parser.parse(code)
-
-traverse(ast, {
-  // 把所有数字字面量 2 改成字符串 'two'（演示“用 t 造新节点并替换”）
-  NumericLiteral(path) {
-    if (path.node.value === 2) {
-      // 用构造器造一个新节点，比手写 { type:'StringLiteral', value:'two' } 安全
-      const newNode = t.stringLiteral('two')
-      console.log('是否字符串字面量？', t.isStringLiteral(newNode)) // true
-      path.replaceWith(newNode)
-    }
-  }
-})
-
-// 此时 ast 已变：radius * radius 中若原先是数字 2 会被替换。
-// 注意 area 仍是 radius*radius，本例只是演示 replaceWith。
-// 下面用 t 造一个完整的新表达式节点，并验证它的结构：
-const addNode = t.binaryExpression('+', t.identifier('a'), t.numericLiteral(1))
-console.log('用 t 造的表达式：', JSON.stringify(addNode))
-// {"type":"BinaryExpression","operator":"+",
-//  "left":{"type":"Identifier","name":"a"},
-//  "right":{"type":"NumericLiteral","value":1}}
-\`\`\`
-
-### 常用构造器速查（记这几个就够入门）
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/types
-// 运行方式：把整段保存为 app-l7b.cjs，终端执行  node app-l7b.cjs
-const t = require('@babel/types')
-
-// 下面每一行都可直接运行，观察 @babel/types 构造/校验的效果
-const id = t.identifier('foo')              // 标识符 foo
-const str = t.stringLiteral('hi')           // 字符串 'hi'
-const num = t.numericLiteral(42)            // 数字 42
-const bool = t.booleanLiteral(true)         // 布尔 true
-const bin = t.binaryExpression('+', id, num) // foo + 42
-const call = t.callExpression(id, [str])     // foo('hi')
-const member = t.memberExpression(id, t.identifier('bar')) // foo.bar
-const vard = t.variableDeclaration('const', [t.variableDeclarator(id, num)]) // const foo = 42
-const ret = t.returnStatement(num)          // return 42
-const block = t.blockStatement([ret])        // { return 42 }
-
-console.log('identifier 类型：', id.type)            // Identifier
-console.log('isIdentifier(id) =', t.isIdentifier(id)) // true
-console.log('isStringLiteral(num) =', t.isStringLiteral(num)) // false
-console.log('bin 结构：', JSON.stringify(bin))
-// {"type":"BinaryExpression","operator":"+",
-//  "left":{"type":"Identifier","name":"foo"},"right":{"type":"NumericLiteral","value":42}}
-\`\`\`
-
-### 名词解释
-
-**builders（构造器）**：\`@babel/types\` 里“按规范造出一个节点”的函数，例如 \`t.identifier('x')\`、\`t.binaryExpression('+', a, b)\`。每种节点类型都对应一个构造器，你只管把必需的子节点传进去，它会补全其余细节。你可以把它当成“AST 节点的正规工厂”。
-
-**validators（校验器）**：判断“某对象是不是某种节点”的函数，例如 \`t.isIdentifier(node)\`、\`t.isStringLiteral(node)\`。它比手写 \`node.type === 'Identifier'\` 更可靠——AST 规范演进时，校验器内部会同步更新，你不用跟进。
-
-### 课后练习
-
-**练习 1**：用 \`t\` 构造一个表示 \`x + 1\` 的 AST 节点，并写出它的结构（包括 \`type\` 与各个字段）。
-> **答案**：\`const node = t.binaryExpression('+', t.identifier('x'), t.numericLiteral(1))\`。结构是：\`{ type: 'BinaryExpression', operator: '+', left: { type: 'Identifier', name: 'x' }, right: { type: 'NumericLiteral', value: 1 } }\`。
-
-**练习 2**：教程说“手写 \`{ type: 'Identifier', name: 'x' }\` 不如用 \`t.identifier('x')\`”，根本原因是什么？
-> **答案**：手写对象容易漏掉规范要求的字段（某些节点还需要 \`loc\`、\`extra\` 等辅助字段），也容易把类型名拼错成非规范字符串；而构造器保证产出的节点字段齐全、类型名正确、符合当前规范，后续 \`generate\` 才不会因为你少字段而报错。
-
-### 本节小结（观点与完整描述）
-
-本节补齐了你“安全地造节点”的能力。一句话记住：**新建节点一律用 \`t.xxx()\` 构造器，别再手写 \`{ type: ... }\` 对象**。原因不只是“少打字”，而是规范层面——手写对象像徒手捏零件，尺寸可能不对；构造器是正规工厂，出厂即合格。配套的 \`t.isXxx(node)\` 校验器则让你判断节点类型时不必依赖容易拼错的字符串比较，规范一升级它自己就跟着变。把“构造器造节点 + 校验器判类型 + \`path.replaceWith\` 落树”这三步连起来，你就拥有了完整且安全的改树工具链。下一节，我们把这条工具链装进一个真正的 Babel 插件里。`
+    "id": "app-l7",
+    "chapter": "babel",
+    "title": "@babel/types 构造与修改节点",
+    "minutes": 55,
+    "content": "### 本节目标\n\n- 用 **@babel/types（t）** 安全地“造”出新节点\n- 掌握三类常用 API：**builders（构造器）/ validators（校验器）/ 直接替换**\n- 理解为什么“手写 AST 对象”不如“用 t.xxx() 构造”稳妥\n\n上一节我们直接改了 `path.node.name`。但**新建一个节点**时，千万别手写 `{ type: 'Identifier', name: 'x' }`——容易漏字段、拼错类型。Babel 提供 `@babel/types`（社区简称 `t`）来“按规范造节点”：\n\n- **builders**：`t.identifier('x')`、`t.stringLiteral('hi')`、`t.binaryExpression('+', a, b)` —— 每种节点一个构造器，参数就是它必需的子节点。\n- **validators**：`t.isIdentifier(node)`、`t.isStringLiteral(node)` —— 判断节点类型，比手写 `node.type === 'Identifier'` 更可靠。\n\n> 心智模型：`t` 是“AST 节点的正规工厂”。你只要说“给我一个标识符叫 x”，工厂保证产出的节点字段齐全、符合规范。\n\n### 动手：用 t 构造节点并替换\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse @babel/types\n// 运行方式：把整段保存为 app-l7.cjs，终端执行  node app-l7.cjs\nconst parser = require('@babel/parser')\nconst traverse = require('@babel/traverse').default\nconst t = require('@babel/types')\n\nconst code = 'const area = radius * radius'\nconst ast = parser.parse(code)\n\ntraverse(ast, {\n  // 把所有数字字面量 2 改成字符串 'two'（演示“用 t 造新节点并替换”）\n  NumericLiteral(path) {\n    if (path.node.value === 2) {\n      // 用构造器造一个新节点，比手写 { type:'StringLiteral', value:'two' } 安全\n      const newNode = t.stringLiteral('two')\n      console.log('是否字符串字面量？', t.isStringLiteral(newNode)) // true\n      path.replaceWith(newNode)\n    }\n  }\n})\n\n// 此时 ast 已变：radius * radius 中若原先是数字 2 会被替换。\n// 注意 area 仍是 radius*radius，本例只是演示 replaceWith。\n// 下面用 t 造一个完整的新表达式节点，并验证它的结构：\nconst addNode = t.binaryExpression('+', t.identifier('a'), t.numericLiteral(1))\nconsole.log('用 t 造的表达式：', JSON.stringify(addNode))\n// {\"type\":\"BinaryExpression\",\"operator\":\"+\",\n//  \"left\":{\"type\":\"Identifier\",\"name\":\"a\"},\n//  \"right\":{\"type\":\"NumericLiteral\",\"value\":1}}\n```\n\n### 常用构造器速查（记这几个就够入门）\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/types\n// 运行方式：把整段保存为 app-l7b.cjs，终端执行  node app-l7b.cjs\nconst t = require('@babel/types')\n\n// 下面每一行都可直接运行，观察 @babel/types 构造/校验的效果\nconst id = t.identifier('foo')              // 标识符 foo\nconst str = t.stringLiteral('hi')           // 字符串 'hi'\nconst num = t.numericLiteral(42)            // 数字 42\nconst bool = t.booleanLiteral(true)         // 布尔 true\nconst bin = t.binaryExpression('+', id, num) // foo + 42\nconst call = t.callExpression(id, [str])     // foo('hi')\nconst member = t.memberExpression(id, t.identifier('bar')) // foo.bar\nconst vard = t.variableDeclaration('const', [t.variableDeclarator(id, num)]) // const foo = 42\nconst ret = t.returnStatement(num)          // return 42\nconst block = t.blockStatement([ret])        // { return 42 }\n\nconsole.log('identifier 类型：', id.type)            // Identifier\nconsole.log('isIdentifier(id) =', t.isIdentifier(id)) // true\nconsole.log('isStringLiteral(num) =', t.isStringLiteral(num)) // false\nconsole.log('bin 结构：', JSON.stringify(bin))\n// {\"type\":\"BinaryExpression\",\"operator\":\"+\",\n//  \"left\":{\"type\":\"Identifier\",\"name\":\"foo\"},\"right\":{\"type\":\"NumericLiteral\",\"value\":42}}\n```\n\n### 名词解释\n\n**builders（构造器）**：`@babel/types` 里“按规范造出一个节点”的函数，例如 `t.identifier('x')`、`t.binaryExpression('+', a, b)`。每种节点类型都对应一个构造器，你只管把必需的子节点传进去，它会补全其余细节。你可以把它当成“AST 节点的正规工厂”。\n\n**validators（校验器）**：判断“某对象是不是某种节点”的函数，例如 `t.isIdentifier(node)`、`t.isStringLiteral(node)`。它比手写 `node.type === 'Identifier'` 更可靠——AST 规范演进时，校验器内部会同步更新，你不用跟进。\n\n### 课后练习\n\n**练习 1**：用 `t` 构造一个表示 `x + 1` 的 AST 节点，并写出它的结构（包括 `type` 与各个字段）。\n> **答案**：`const node = t.binaryExpression('+', t.identifier('x'), t.numericLiteral(1))`。结构是：`{ type: 'BinaryExpression', operator: '+', left: { type: 'Identifier', name: 'x' }, right: { type: 'NumericLiteral', value: 1 } }`。\n\n**练习 2**：教程说“手写 `{ type: 'Identifier', name: 'x' }` 不如用 `t.identifier('x')`”，根本原因是什么？\n> **答案**：手写对象容易漏掉规范要求的字段（某些节点还需要 `loc`、`extra` 等辅助字段），也容易把类型名拼错成非规范字符串；而构造器保证产出的节点字段齐全、类型名正确、符合当前规范，后续 `generate` 才不会因为你少字段而报错。\n\n### 本节小结（观点与完整描述）\n\n本节补齐了你“安全地造节点”的能力。一句话记住：**新建节点一律用 `t.xxx()` 构造器，别再手写 `{ type: ... }` 对象**。原因不只是“少打字”，而是规范层面——手写对象像徒手捏零件，尺寸可能不对；构造器是正规工厂，出厂即合格。配套的 `t.isXxx(node)` 校验器则让你判断节点类型时不必依赖容易拼错的字符串比较，规范一升级它自己就跟着变。把“构造器造节点 + 校验器判类型 + `path.replaceWith` 落树”这三步连起来，你就拥有了完整且安全的改树工具链。下一节，我们把这条工具链装进一个真正的 Babel 插件里。"
   },
   {
-    id: 'app-l8',
-    chapter: 'babel',
-    title: '写你的第一个 Babel 插件：import 改写实战',
-    minutes: 60,
-    content: `### 本节目标
-
-- 写完并跑通**第一个真正的 Babel 插件**
-- 把 \`import { Button } from 'antd'\` 自动改成 \`import Button from 'antd/lib/button'\`
-- 理解插件的本质：**插件 = 一个返回 visitor 的函数**
-
-Babel 插件的本质非常简单：
-
-\`\`\`js
-module.exports = function myPlugin() {
-  return {
-    visitor: {
-      // 当遍历到某种节点时，Babel 调用这里的函数
-      SomeNodeType(path) { /* 用 path 改树 */ }
-    }
-  }
-}
-\`\`\`
-
-这次我们改 **\`ImportDeclaration\`**（ import 声明）节点：当来源是 \`'antd'\` 时，把每个具名导入 \`{ Button, Input }\` 拆成独立的默认导入 \`import Button from 'antd/lib/button'\`。这正是 antd 按需加载的经典写法。
-
-### 动手：完整插件 + 运行
-
-\`\`\`js
-// ===== 文件 1：plugin.cjs（我们的插件）=====
-// 运行环境：Node.js 18+，需安装： npm install @babel/core @babel/types
-// 说明：插件本身只是“返回 visitor 的函数”，不依赖运行环境
-
-module.exports = function babelPluginImportToLib() {
-  const t = require('@babel/types')
-  return {
-    visitor: {
-      ImportDeclaration(path) {
-        const source = path.node.source.value
-        if (source !== 'antd') return            // 只处理来自 antd 的导入
-
-        const newNodes = path.node.specifiers
-          .filter((s) => s.type === 'ImportSpecifier') // 具名导入 { X }
-          .map((s) => {
-            const exported = s.imported.name       // 导出的名字，如 Button
-            const local = s.local.name             // 本地绑定的名字
-            return t.importDeclaration(
-              [t.importDefaultSpecifier(t.identifier(local))],
-              t.stringLiteral('antd/lib/' + exported.toLowerCase())
-            )
-          })
-
-        if (newNodes.length > 0) {
-          // 用多个新节点替换原来的单条导入
-          path.replaceWithMultiple(newNodes)
-        }
-      }
-    }
-  }
-}
-\`\`\`
-
-\`\`\`js
-// ===== 文件 2：run.cjs（用插件转换一段代码）=====
-// 运行环境：Node.js 18+，需安装： npm install @babel/core
-// 运行方式：把 plugin.cjs 和 run.cjs 放同一目录，终端执行  node run.cjs
-
-const babel = require('@babel/core')
-const myPlugin = require('./plugin.cjs')
-
-const code = "import { Button, Input } from 'antd'"
-const result = babel.transformSync(code, { plugins: [myPlugin] })
-
-console.log('转换前：', code)
-console.log('转换后：', result.code)
-// 转换后：
-// import Button from "antd/lib/button";
-// import Input from "antd/lib/input";
-\`\`\`
-
-### 名词解释
-
-**插件（Plugin）**：在 Babel 语境下，插件就是“一个返回 \`{ visitor }\` 的函数”。Babel 在遍历 AST 时，遇到你在 visitor 里声明的节点类型，就调用对应的处理函数。换句话说，**插件 = 你告诉 Babel“遇到某类节点时该做什么”的一段逻辑**。
-
-**ImportDeclaration（导入声明节点）**：AST 中表示一条 \`import ... from ...\` 语句的节点。它的 \`source.value\` 是模块路径（如 \`'antd'\`），\`specifiers\` 是这条语句导入的具体绑定（默认导入 \`import x\`、具名导入 \`import { x }\`）。改按需加载，本质上就是重写这个节点。
-
-### 课后练习
-
-**练习 1**：本节的插件把 \`import { Button } from 'antd'\` 转换成了什么？请写出转换后的完整代码。
-> **答案**：\`import Button from "antd/lib/button";\`。逻辑是：每个具名导入 \`{ Button }\` 被拆成一条独立的默认导入，模块路径被小写化为 \`antd/lib/button\`（Button → button）。
-
-**练习 2**：如果源码是 \`import React from 'react'\`，本节的插件会改动它吗？为什么？
-> **答案**：不会，有两道关卡把它挡住了：① \`if (source !== 'antd') return\` 直接跳过非 antd 的导入；② 它是默认导入不是具名导入，\`specifiers.filter(s => s.type === 'ImportSpecifier')\` 会把它过滤掉，于是 \`newNodes\` 为空，不会触发 \`replaceWithMultiple\`。
-
-### 本节小结（观点与完整描述）
-
-本节你写出了第一个“能落地”的 Babel 插件，也戳破了插件神秘感：**插件 = 一个返回 \`{ visitor }\` 的函数**，你写的就是“遇到某类节点时做什么”。真正干活的三件套是 \`path.replaceWith / replaceWithMultiple / remove\` 配合 \`t.xxx()\` 造节点；而 \`babel.transformSync(code, { plugins: [你的插件] })\` 则让你在普通 Node 脚本里离线跑通整条流水线。值得点破的是——你每天用的 babel-plugin-import、React 的 JSX 转换、TypeScript 去类型，底层全是同一套机制，区别只在 visitor 里改了什么。理解了“插件就是 visitor 函数”，你就从“用别人的插件”跨进了“写自己的插件”。`
+    "id": "app-l8",
+    "chapter": "babel",
+    "title": "写你的第一个 Babel 插件：import 改写实战",
+    "minutes": 60,
+    "content": "### 本节目标\n\n- 写完并跑通**第一个真正的 Babel 插件**\n- 把 `import { Button } from 'antd'` 自动改成 `import Button from 'antd/lib/button'`\n- 理解插件的本质：**插件 = 一个返回 visitor 的函数**\n\nBabel 插件的本质非常简单：\n\n```js\nmodule.exports = function myPlugin() {\n  return {\n    visitor: {\n      // 当遍历到某种节点时，Babel 调用这里的函数\n      SomeNodeType(path) { /* 用 path 改树 */ }\n    }\n  }\n}\n```\n\n这次我们改 **`ImportDeclaration`**（ import 声明）节点：当来源是 `'antd'` 时，把每个具名导入 `{ Button, Input }` 拆成独立的默认导入 `import Button from 'antd/lib/button'`。这正是 antd 按需加载的经典写法。\n\n### 动手：完整插件 + 运行\n\n```js\n// ===== 文件 1：plugin.cjs（我们的插件）=====\n// 运行环境：Node.js 18+，需安装： npm install @babel/core @babel/types\n// 说明：插件本身只是“返回 visitor 的函数”，不依赖运行环境\n\nmodule.exports = function babelPluginImportToLib() {\n  const t = require('@babel/types')\n  return {\n    visitor: {\n      ImportDeclaration(path) {\n        const source = path.node.source.value\n        if (source !== 'antd') return            // 只处理来自 antd 的导入\n\n        const newNodes = path.node.specifiers\n          .filter((s) => s.type === 'ImportSpecifier') // 具名导入 { X }\n          .map((s) => {\n            const exported = s.imported.name       // 导出的名字，如 Button\n            const local = s.local.name             // 本地绑定的名字\n            return t.importDeclaration(\n              [t.importDefaultSpecifier(t.identifier(local))],\n              t.stringLiteral('antd/lib/' + exported.toLowerCase())\n            )\n          })\n\n        if (newNodes.length > 0) {\n          // 用多个新节点替换原来的单条导入\n          path.replaceWithMultiple(newNodes)\n        }\n      }\n    }\n  }\n}\n```\n\n```js\n// ===== 文件 2：run.cjs（用插件转换一段代码）=====\n// 运行环境：Node.js 18+，需安装： npm install @babel/core\n// 运行方式：把 plugin.cjs 和 run.cjs 放同一目录，终端执行  node run.cjs\n\nconst babel = require('@babel/core')\nconst myPlugin = require('./plugin.cjs')\n\nconst code = \"import { Button, Input } from 'antd'\"\nconst result = babel.transformSync(code, { plugins: [myPlugin] })\n\nconsole.log('转换前：', code)\nconsole.log('转换后：', result.code)\n// 转换后：\n// import Button from \"antd/lib/button\";\n// import Input from \"antd/lib/input\";\n```\n\n### 名词解释\n\n**插件（Plugin）**：在 Babel 语境下，插件就是“一个返回 `{ visitor }` 的函数”。Babel 在遍历 AST 时，遇到你在 visitor 里声明的节点类型，就调用对应的处理函数。换句话说，**插件 = 你告诉 Babel“遇到某类节点时该做什么”的一段逻辑**。\n\n**ImportDeclaration（导入声明节点）**：AST 中表示一条 `import ... from ...` 语句的节点。它的 `source.value` 是模块路径（如 `'antd'`），`specifiers` 是这条语句导入的具体绑定（默认导入 `import x`、具名导入 `import { x }`）。改按需加载，本质上就是重写这个节点。\n\n### 课后练习\n\n**练习 1**：本节的插件把 `import { Button } from 'antd'` 转换成了什么？请写出转换后的完整代码。\n> **答案**：`import Button from \"antd/lib/button\";`。逻辑是：每个具名导入 `{ Button }` 被拆成一条独立的默认导入，模块路径被小写化为 `antd/lib/button`（Button → button）。\n\n**练习 2**：如果源码是 `import React from 'react'`，本节的插件会改动它吗？为什么？\n> **答案**：不会，有两道关卡把它挡住了：① `if (source !== 'antd') return` 直接跳过非 antd 的导入；② 它是默认导入不是具名导入，`specifiers.filter(s => s.type === 'ImportSpecifier')` 会把它过滤掉，于是 `newNodes` 为空，不会触发 `replaceWithMultiple`。\n\n### 本节小结（观点与完整描述）\n\n本节你写出了第一个“能落地”的 Babel 插件，也戳破了插件神秘感：**插件 = 一个返回 `{ visitor }` 的函数**，你写的就是“遇到某类节点时做什么”。真正干活的三件套是 `path.replaceWith / replaceWithMultiple / remove` 配合 `t.xxx()` 造节点；而 `babel.transformSync(code, { plugins: [你的插件] })` 则让你在普通 Node 脚本里离线跑通整条流水线。值得点破的是——你每天用的 babel-plugin-import、React 的 JSX 转换、TypeScript 去类型，底层全是同一套机制，区别只在 visitor 里改了什么。理解了“插件就是 visitor 函数”，你就从“用别人的插件”跨进了“写自己的插件”。"
   },
   {
-    id: 'app-l9',
-    chapter: 'transform',
-    title: '代码转换实战：ES6 → ES5',
-    minutes: 70,
-    content: `### 本节目标
-
-- 用前面学的 visitor + t 写一个 **ES6 → ES5 转译插件**
-- 覆盖三种常见转换：箭头函数 → 普通函数、let/const → var、模板字符串 → 字符串拼接
-- 体会“转换（Transform）”这一步的真实形态
-
-Babel 最常见用途就是把新版 JS 转成旧版（兼容老浏览器）。这正是“在 AST 上做修改”。我们一次性实现三个小转换。注意：**真实项目请用 \`@babel/preset-env\`**，这里手写是为了让你看清原理——你写的每个转换，和 preset-env 内部做的事是同一类。
-
-### 动手：一个迷你“ES6→ES5”插件
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/core @babel/types
-// 运行方式：把整段保存为 app-l9.cjs，终端执行  node app-l9.cjs
-
-const babel = require('@babel/core')
-const t = require('@babel/types')
-
-// 我们的插件：返回 visitor，对三类节点分别做转换
-function babelPluginEs6ToEs5() {
-  return {
-    visitor: {
-      // ① 箭头函数 -> 普通函数表达式
-      ArrowFunctionExpression(path) {
-        const { params, body } = path.node
-        // 箭头函数体若是表达式（如 n * 2），包成 return 语句
-        const fnBody = body.type === 'BlockStatement'
-          ? body
-          : t.blockStatement([t.returnStatement(body)])
-        const fn = t.functionExpression(null, params, fnBody)
-        path.replaceWith(fn)
-      },
-      // ② let / const -> var
-      VariableDeclaration(path) {
-        if (path.node.kind === 'let' || path.node.kind === 'const') {
-          path.node.kind = 'var'
-        }
-      },
-      // ③ 模板字符串 \`a\${x}b\` -> 字符串拼接 'a' + x + 'b'
-      TemplateLiteral(path) {
-        const { quasis, expressions } = path.node
-        let result = t.stringLiteral(quasis[0].value.cooked) // 第一段静态文本
-        for (let i = 0; i < expressions.length; i++) {
-          result = t.binaryExpression('+', result, expressions[i]) // + 表达式
-          const tail = quasis[i + 1].value.cooked                  // 表达式后面的静态文本
-          if (tail !== '') result = t.binaryExpression('+', result, t.stringLiteral(tail))
-        }
-        path.replaceWith(result)
-      }
-    }
-  }
-}
-
-// === 调用示例 ===
-const code = [
-  "const greet = (name) => {",
-  "  const msg = \`hi \${name}\`;",
-  "  return msg;",
-  "};"
-].join('\\n')
-
-const out = babel.transformSync(code, { plugins: [babelPluginEs6ToEs5] })
-console.log('--- 转换结果（ES5）---')
-console.log(out.code)
-// 大致输出：
-// var greet = function (name) {
-//   var msg = 'hi ' + name;
-//   return msg;
-// };
-\`\`\`
-
-### 名词解释
-
-**转译（Transpile）**：把一种语言 / 版本的代码转换成另一种（通常是更旧或更低级）代码，且**保持语义不变**。Babel 的 ES6→ES5 就是典型转译。它和“编译”常被混用，但转译特指“源和目标都是高级语言”（如 JS→JS），编译则常指高级语言→机器码。
-
-**预设（Preset）**：一组“预先打包好的插件集合”。例如 \`@babel/preset-env\` 内部就是几十个做不同语法降级的小插件。你写 \`presets: ['@babel/preset-env']\`，等价于一次性挂上这整组插件，省得自己逐个列。可以把预设理解为“插件的套餐”。
-
-### 课后练习
-
-**练习 1**：本节的插件把下面这段代码转成了什么？请写出关键变化。
-\`\`\`
-const greet = (name) => { const msg = \`hi \${name}\`; return msg; }
-\`\`\`
-> **答案**：三处变化——① 箭头函数变普通 \`function\` 表达式；② \`const\` 变 \`var\`；③ 模板字符串 \`hi \${name}\` 被拆成字符串拼接 \`'hi ' + name\`。最终大致是 \`var greet = function (name) { var msg = 'hi ' + name; return msg; };\`。
-
-**练习 2**：教程强调“真实项目请用 \`@babel/preset-env\`，而非手写这些转换”，为什么？
-> **答案**：手写只覆盖你想到的一小部分语法，且要手动跟进每年新增的语法；\`@babel/preset-env\` 会按你设定的目标浏览器，自动决定该降级哪些语法、用哪些插件，全面且可持续维护。手写只适合用来“看清原理”，不适合当生产方案。
-
-### 本节小结（观点与完整描述）
-
-本节让你亲手实现了 Babel 最常见的用途——**把新版 JS 转成旧版**。你看到的不是一个黑盒，而是一个插件同时挂多个 visitor 节点类型、各管各转换的朴素组合：箭头函数→普通函数、let/const→var、模板字符串→拼接。两个细节值得一提：箭头函数体若是“表达式”要记得补 \`return\` 语句，模板字符串要拆成“静态文本 + 表达式 + 静态文本”的拼接链。但要清醒——你写的这些只是“原理演示”，真实工程请用 \`@babel/preset-env\`，它才是按目标浏览器自动选插件的完整方案。理解了本节，你就知道每天跑的 Babel 到底在背后干了什么。下一步，我们把“转换”接到“lint 与自动修复”上，给流水线收个尾。`
+    "id": "app-l9",
+    "chapter": "transform",
+    "title": "代码转换实战：ES6 → ES5",
+    "minutes": 70,
+    "content": "### 本节目标\n\n- 用前面学的 visitor + t 写一个 **ES6 → ES5 转译插件**\n- 覆盖三种常见转换：箭头函数 → 普通函数、let/const → var、模板字符串 → 字符串拼接\n- 体会“转换（Transform）”这一步的真实形态\n\nBabel 最常见用途就是把新版 JS 转成旧版（兼容老浏览器）。这正是“在 AST 上做修改”。我们一次性实现三个小转换。注意：**真实项目请用 `@babel/preset-env`**，这里手写是为了让你看清原理——你写的每个转换，和 preset-env 内部做的事是同一类。\n\n### 动手：一个迷你“ES6→ES5”插件\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/core @babel/types\n// 运行方式：把整段保存为 app-l9.cjs，终端执行  node app-l9.cjs\n\nconst babel = require('@babel/core')\nconst t = require('@babel/types')\n\n// 我们的插件：返回 visitor，对三类节点分别做转换\nfunction babelPluginEs6ToEs5() {\n  return {\n    visitor: {\n      // ① 箭头函数 -> 普通函数表达式\n      ArrowFunctionExpression(path) {\n        const { params, body } = path.node\n        // 箭头函数体若是表达式（如 n * 2），包成 return 语句\n        const fnBody = body.type === 'BlockStatement'\n          ? body\n          : t.blockStatement([t.returnStatement(body)])\n        const fn = t.functionExpression(null, params, fnBody)\n        path.replaceWith(fn)\n      },\n      // ② let / const -> var\n      VariableDeclaration(path) {\n        if (path.node.kind === 'let' || path.node.kind === 'const') {\n          path.node.kind = 'var'\n        }\n      },\n      // ③ 模板字符串 `a${x}b` -> 字符串拼接 'a' + x + 'b'\n      TemplateLiteral(path) {\n        const { quasis, expressions } = path.node\n        let result = t.stringLiteral(quasis[0].value.cooked) // 第一段静态文本\n        for (let i = 0; i < expressions.length; i++) {\n          result = t.binaryExpression('+', result, expressions[i]) // + 表达式\n          const tail = quasis[i + 1].value.cooked                  // 表达式后面的静态文本\n          if (tail !== '') result = t.binaryExpression('+', result, t.stringLiteral(tail))\n        }\n        path.replaceWith(result)\n      }\n    }\n  }\n}\n\n// === 调用示例 ===\nconst code = [\n  \"const greet = (name) => {\",\n  \"  const msg = `hi ${name}`;\",\n  \"  return msg;\",\n  \"};\"\n].join('\\n')\n\nconst out = babel.transformSync(code, { plugins: [babelPluginEs6ToEs5] })\nconsole.log('--- 转换结果（ES5）---')\nconsole.log(out.code)\n// 大致输出：\n// var greet = function (name) {\n//   var msg = 'hi ' + name;\n//   return msg;\n// };\n```\n\n### 名词解释\n\n**转译（Transpile）**：把一种语言 / 版本的代码转换成另一种（通常是更旧或更低级）代码，且**保持语义不变**。Babel 的 ES6→ES5 就是典型转译。它和“编译”常被混用，但转译特指“源和目标都是高级语言”（如 JS→JS），编译则常指高级语言→机器码。\n\n**预设（Preset）**：一组“预先打包好的插件集合”。例如 `@babel/preset-env` 内部就是几十个做不同语法降级的小插件。你写 `presets: ['@babel/preset-env']`，等价于一次性挂上这整组插件，省得自己逐个列。可以把预设理解为“插件的套餐”。\n\n### 课后练习\n\n**练习 1**：本节的插件把下面这段代码转成了什么？请写出关键变化。\n```javascript\nconst greet = (name) => { const msg = `hi ${name}`; return msg; }\n```\n> **答案**：三处变化——① 箭头函数变普通 `function` 表达式；② `const` 变 `var`；③ 模板字符串 `hi ${name}` 被拆成字符串拼接 `'hi ' + name`。最终大致是 `var greet = function (name) { var msg = 'hi ' + name; return msg; };`。\n\n**练习 2**：教程强调“真实项目请用 `@babel/preset-env`，而非手写这些转换”，为什么？\n> **答案**：手写只覆盖你想到的一小部分语法，且要手动跟进每年新增的语法；`@babel/preset-env` 会按你设定的目标浏览器，自动决定该降级哪些语法、用哪些插件，全面且可持续维护。手写只适合用来“看清原理”，不适合当生产方案。\n\n### 本节小结（观点与完整描述）\n\n本节让你亲手实现了 Babel 最常见的用途——**把新版 JS 转成旧版**。你看到的不是一个黑盒，而是一个插件同时挂多个 visitor 节点类型、各管各转换的朴素组合：箭头函数→普通函数、let/const→var、模板字符串→拼接。两个细节值得一提：箭头函数体若是“表达式”要记得补 `return` 语句，模板字符串要拆成“静态文本 + 表达式 + 静态文本”的拼接链。但要清醒——你写的这些只是“原理演示”，真实工程请用 `@babel/preset-env`，它才是按目标浏览器自动选插件的完整方案。理解了本节，你就知道每天跑的 Babel 到底在背后干了什么。下一步，我们把“转换”接到“lint 与自动修复”上，给流水线收个尾。"
   },
   {
-    id: 'app-l10',
-    chapter: 'transform',
-    title: '基于 AST 的 lint 与自动修复 + 代码生成（收官）',
-    minutes: 70,
-    content: `### 本节目标
-
-- 用 AST 写一个**真正的 lint 规则**：发现 \`==\` 提示用 \`===\`，发现裸 \`console.log\` 报警
-- 实现 **--fix 自动修复**（\`==\` → \`===\`）
-- 用 **@babel/generator** 把改好的 AST 重新生成代码（收官“生成”这一步）
-- 串起全课：Parse → Transform → Generate
-
-ESLint 的本质就是“遍历 AST + 按规则报错 + 可选自动修复”。我们用 30 行实现它的核心。最后用 \`@babel/generator\` 把 AST 画回代码，正好补齐第 2 节那条流水线的第三步。
-
-### 动手：lint + 自动修复 + 生成代码
-
-\`\`\`js
-// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse @babel/generator
-// 运行方式：把整段保存为 app-l10.cjs，终端执行  node app-l10.cjs
-
-const parser = require('@babel/parser')
-const traverse = require('@babel/traverse').default
-const generate = require('@babel/generator').default
-
-const code = [
-  "function check(a, b) {",
-  "  if (a == b) {",
-  "    console.log('相等')",
-  "  }",
-  "  return a == b",
-  "}"
-].join('\\n')
-
-const ast = parser.parse(code)
-const problems = []
-
-traverse(ast, {
-  // 规则 1：发现 == 建议用 ===（可自动修复）
-  BinaryExpression(path) {
-    if (path.node.operator === '==') {
-      problems.push({ line: path.node.loc.start.line, msg: '建议用 === 代替 ==', fixable: true, path })
-    }
-  },
-  // 规则 2：裸 console.log 报警（不自动修）
-  CallExpression(path) {
-    const callee = path.node.callee
-    if (callee.type === 'MemberExpression' &&
-        callee.object.name === 'console' && callee.property.name === 'log') {
-      problems.push({ line: path.node.loc.start.line, msg: '生产环境请移除 console.log', fixable: false })
-    }
-  }
-})
-
-// 打印 lint 报告
-console.log('=== Lint 报告 ===')
-problems.forEach((p) => console.log('第 ' + p.line + ' 行：' + p.msg + (p.fixable ? '（可修复）' : '')))
-
-// 自动修复：把 == 改成 ===（通过 path.replaceWith 重建节点）
-problems.filter((p) => p.fixable).forEach((p) => {
-  const n = p.path.node
-  p.path.replaceWith(
-    require('@babel/types').binaryExpression('===', n.left, n.right)
-  )
-})
-
-// 生成：把（可能修复过的）AST 重新画回代码字符串
-const output = generate(ast, {}, code).code
-console.log('\\n=== 修复并生成后的代码 ===')
-console.log(output)
-// 大致输出：
-// function check(a, b) {
-//   if (a === b) {
-//     console.log('相等')
-//   }
-//   return a === b
-// }
-\`\`\`
-
-### 全课串讲：你现在已经掌握的东西
-
-- **Parse（解析）**：手写 tokenizer/Parser 理解原理；真实用 acorn / @babel/parser。
-- **Transform（转换）**：visitor + Path + \`@babel/types\` 在树上增删改；写插件、写 lint 都是它。
-- **Generate（生成）**：\`@babel/generator\` 把 AST 画回代码，并生成 source map。
-- **真实世界**：Babel、TypeScript、ESLint、Prettier、webpack、Rollup、Vue 模板编译……**底层全是 AST**。
-
-### 下一步建议
-
-1. 打开 [AST Explorer](https://astexplorer.net)，把本课每个例子粘进去对照节点类型。
-2. 读 \`@babel/parser\` / \`@babel/traverse\` 的官方 README，认全节点类型。
-3. 给本课的 lint 加一条规则（例如“禁止 \`if (x = 1)\` 的赋值误用”），亲手练手。
-4. 想继续深入编译原理，可回看本站《AST 实操：解释器与编译器》课程（手写求值器 / 迷你编译器）。
-
-### 名词解释
-
-**lint（静态检查）**：在不运行代码的前提下，扫描源码找出“可能有问题”的写法（比如用 \`==\`、留下裸 \`console.log\`）。它的本质就是本节做的三件事：**遍历 AST + 按规则报错 + 可选自动修复**。ESLint 的全部魔法都在这三步里。
-
-**自动修复（Autofix）**：lint 工具发现“可修复问题”时，直接改写 AST 并重新生成代码的能力。本节的 \`==\` → \`===\` 就是一例——通过 \`path.replaceWith\` 重建节点实现，对应 ESLint 的 \`--fix\`。
-
-### 课后练习
-
-**练习 1**：本节的 lint 对下面代码会报告几处问题？分别是什么？
-\`\`\`
-function check(a, b) { if (a == b) { console.log('x') } return a == b }
-\`\`\`
-> **答案**：共 3 处——两处 \`==\` 被建议改用 \`===\`（标记为可修复）；一处裸 \`console.log\` 报警（标记为不可修复）。
-
-**练习 2**：自动修复后，用 \`@babel/generator\` 生成的代码里，\`a == b\` 和 \`console.log\` 分别变成了什么？
-> **答案**：两处 \`a == b\` 都被修复成 \`a === b\`；\`console.log('x')\` 保持不变（因为规则 2 标记为不可修复，只报警不修）。
-
-### 本节小结（观点与完整描述）
-
-收官一节，你把整条流水线真正跑圆了：**Parse → Transform → Generate**，而“lint + 自动修复”正是这条流水线最接地气的应用。你写的 30 行代码，本质上就是 ESLint 的核心——遍历 AST、按规则往 \`problems\` 里塞报告、对可修复的用 \`path.replaceWith\` 重建节点、最后用 \`@babel/generator\` 把树重新画回代码。值得记住的是“可修复”与“只报警”的区分：能不能自动改，取决于你愿不愿意（以及安不安全）替用户做决定。当你回头看全课会发现，AST 从来不是玄学，它就是“代码的树状结构 + 一套在该树上操作的标准工具”；而 Parse / Transform / Generate 三步，加上 visitor / path / t 三件套，已经足够你读写世界上绝大多数“处理代码的工具”。下一步，就把这些能力用在你自己的项目里。`
+    "id": "app-l10",
+    "chapter": "transform",
+    "title": "基于 AST 的 lint 与自动修复 + 代码生成（收官）",
+    "minutes": 70,
+    "content": "### 本节目标\n\n- 用 AST 写一个**真正的 lint 规则**：发现 `==` 提示用 `===`，发现裸 `console.log` 报警\n- 实现 **--fix 自动修复**（`==` → `===`）\n- 用 **@babel/generator** 把改好的 AST 重新生成代码（收官“生成”这一步）\n- 串起全课：Parse → Transform → Generate\n\nESLint 的本质就是“遍历 AST + 按规则报错 + 可选自动修复”。我们用 30 行实现它的核心。最后用 `@babel/generator` 把 AST 画回代码，正好补齐第 2 节那条流水线的第三步。\n\n### 动手：lint + 自动修复 + 生成代码\n\n```js\n// 运行环境：Node.js 18+，需安装： npm install @babel/parser @babel/traverse @babel/generator\n// 运行方式：把整段保存为 app-l10.cjs，终端执行  node app-l10.cjs\n\nconst parser = require('@babel/parser')\nconst traverse = require('@babel/traverse').default\nconst generate = require('@babel/generator').default\n\nconst code = [\n  \"function check(a, b) {\",\n  \"  if (a == b) {\",\n  \"    console.log('相等')\",\n  \"  }\",\n  \"  return a == b\",\n  \"}\"\n].join('\\n')\n\nconst ast = parser.parse(code)\nconst problems = []\n\ntraverse(ast, {\n  // 规则 1：发现 == 建议用 ===（可自动修复）\n  BinaryExpression(path) {\n    if (path.node.operator === '==') {\n      problems.push({ line: path.node.loc.start.line, msg: '建议用 === 代替 ==', fixable: true, path })\n    }\n  },\n  // 规则 2：裸 console.log 报警（不自动修）\n  CallExpression(path) {\n    const callee = path.node.callee\n    if (callee.type === 'MemberExpression' &&\n        callee.object.name === 'console' && callee.property.name === 'log') {\n      problems.push({ line: path.node.loc.start.line, msg: '生产环境请移除 console.log', fixable: false })\n    }\n  }\n})\n\n// 打印 lint 报告\nconsole.log('=== Lint 报告 ===')\nproblems.forEach((p) => console.log('第 ' + p.line + ' 行：' + p.msg + (p.fixable ? '（可修复）' : '')))\n\n// 自动修复：把 == 改成 ===（通过 path.replaceWith 重建节点）\nproblems.filter((p) => p.fixable).forEach((p) => {\n  const n = p.path.node\n  p.path.replaceWith(\n    require('@babel/types').binaryExpression('===', n.left, n.right)\n  )\n})\n\n// 生成：把（可能修复过的）AST 重新画回代码字符串\nconst output = generate(ast, {}, code).code\nconsole.log('\\n=== 修复并生成后的代码 ===')\nconsole.log(output)\n// 大致输出：\n// function check(a, b) {\n//   if (a === b) {\n//     console.log('相等')\n//   }\n//   return a === b\n// }\n```\n\n### 全课串讲：你现在已经掌握的东西\n\n- **Parse（解析）**：手写 tokenizer/Parser 理解原理；真实用 acorn / @babel/parser。\n- **Transform（转换）**：visitor + Path + `@babel/types` 在树上增删改；写插件、写 lint 都是它。\n- **Generate（生成）**：`@babel/generator` 把 AST 画回代码，并生成 source map。\n- **真实世界**：Babel、TypeScript、ESLint、Prettier、webpack、Rollup、Vue 模板编译……**底层全是 AST**。\n\n### 下一步建议\n\n1. 打开 [AST Explorer](https://astexplorer.net)，把本课每个例子粘进去对照节点类型。\n2. 读 `@babel/parser` / `@babel/traverse` 的官方 README，认全节点类型。\n3. 给本课的 lint 加一条规则（例如“禁止 `if (x = 1)` 的赋值误用”），亲手练手。\n4. 想继续深入编译原理，可回看本站《AST 实操：解释器与编译器》课程（手写求值器 / 迷你编译器）。\n\n### 名词解释\n\n**lint（静态检查）**：在不运行代码的前提下，扫描源码找出“可能有问题”的写法（比如用 `==`、留下裸 `console.log`）。它的本质就是本节做的三件事：**遍历 AST + 按规则报错 + 可选自动修复**。ESLint 的全部魔法都在这三步里。\n\n**自动修复（Autofix）**：lint 工具发现“可修复问题”时，直接改写 AST 并重新生成代码的能力。本节的 `==` → `===` 就是一例——通过 `path.replaceWith` 重建节点实现，对应 ESLint 的 `--fix`。\n\n### 课后练习\n\n**练习 1**：本节的 lint 对下面代码会报告几处问题？分别是什么？\n```javascript\nfunction check(a, b) { if (a == b) { console.log('x') } return a == b }\n```\n> **答案**：共 3 处——两处 `==` 被建议改用 `===`（标记为可修复）；一处裸 `console.log` 报警（标记为不可修复）。\n\n**练习 2**：自动修复后，用 `@babel/generator` 生成的代码里，`a == b` 和 `console.log` 分别变成了什么？\n> **答案**：两处 `a == b` 都被修复成 `a === b`；`console.log('x')` 保持不变（因为规则 2 标记为不可修复，只报警不修）。\n\n### 本节小结（观点与完整描述）\n\n收官一节，你把整条流水线真正跑圆了：**Parse → Transform → Generate**，而“lint + 自动修复”正是这条流水线最接地气的应用。你写的 30 行代码，本质上就是 ESLint 的核心——遍历 AST、按规则往 `problems` 里塞报告、对可修复的用 `path.replaceWith` 重建节点、最后用 `@babel/generator` 把树重新画回代码。值得记住的是“可修复”与“只报警”的区分：能不能自动改，取决于你愿不愿意（以及安不安全）替用户做决定。当你回头看全课会发现，AST 从来不是玄学，它就是“代码的树状结构 + 一套在该树上操作的标准工具”；而 Parse / Transform / Generate 三步，加上 visitor / path / t 三件套，已经足够你读写世界上绝大多数“处理代码的工具”。下一步，就把这些能力用在你自己的项目里。"
   }
 ]
 
-export const astProPlan = [{'day': 1, 'title': '什么是 AST？看一段代码如何变成“树”', 'lessons': ['app-l1']}, {'day': 2, 'title': '编译器三步走：解析 → 转换 → 生成', 'lessons': ['app-l2']}, {'day': 3, 'title': '手写 tokenizer：把源码切成 token 流', 'lessons': ['app-l3']}, {'day': 4, 'title': '手写递归下降 Parser：把 token 拼成 AST', 'lessons': ['app-l4']}, {'day': 5, 'title': '用 acorn 解析真实 JS + 自己写 AST 遍历器', 'lessons': ['app-l5']}, {'day': 6, 'title': 'babel-traverse 遍历 + Paths（访问者进/出、路径对象）', 'lessons': ['app-l6']}, {'day': 7, 'title': '@babel/types 构造与修改节点', 'lessons': ['app-l7']}, {'day': 8, 'title': '写你的第一个 Babel 插件：import 改写实战', 'lessons': ['app-l8']}, {'day': 9, 'title': '代码转换实战：ES6 → ES5', 'lessons': ['app-l9']}, {'day': 10, 'title': '基于 AST 的 lint 与自动修复 + 代码生成（收官）', 'lessons': ['app-l10']}]
+export const astProPlan = [
+  {
+    "day": 1,
+    "title": "什么是 AST？看一段代码如何变成“树”",
+    "lessons": [
+      "app-l1"
+    ]
+  },
+  {
+    "day": 2,
+    "title": "编译器三步走：解析 → 转换 → 生成",
+    "lessons": [
+      "app-l2"
+    ]
+  },
+  {
+    "day": 3,
+    "title": "手写 tokenizer：把源码切成 token 流",
+    "lessons": [
+      "app-l3"
+    ]
+  },
+  {
+    "day": 4,
+    "title": "手写递归下降 Parser：把 token 拼成 AST",
+    "lessons": [
+      "app-l4"
+    ]
+  },
+  {
+    "day": 5,
+    "title": "用 acorn 解析真实 JS + 自己写 AST 遍历器",
+    "lessons": [
+      "app-l5"
+    ]
+  },
+  {
+    "day": 6,
+    "title": "babel-traverse 遍历 + Paths（访问者进/出、路径对象）",
+    "lessons": [
+      "app-l6"
+    ]
+  },
+  {
+    "day": 7,
+    "title": "@babel/types 构造与修改节点",
+    "lessons": [
+      "app-l7"
+    ]
+  },
+  {
+    "day": 8,
+    "title": "写你的第一个 Babel 插件：import 改写实战",
+    "lessons": [
+      "app-l8"
+    ]
+  },
+  {
+    "day": 9,
+    "title": "代码转换实战：ES6 → ES5",
+    "lessons": [
+      "app-l9"
+    ]
+  },
+  {
+    "day": 10,
+    "title": "基于 AST 的 lint 与自动修复 + 代码生成（收官）",
+    "lessons": [
+      "app-l10"
+    ]
+  }
+]
