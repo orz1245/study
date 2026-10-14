@@ -1,0 +1,87 @@
+/* ==========================================================================
+   方案A · 极简编辑部风 —— 全站唯一的设计令牌来源
+   --------------------------------------------------------------------------
+   构建期由 scripts/ssg.mjs 读入并内联进每一个静态页的 style 标签里；
+   运行期由岛脚本（public/islands/*.js）依赖同一套变量。
+   这两处必须是同一份 —— 否则同一个 URL「直接打开」与「站内跳转」会渲染成
+   两套视觉（这正是 2026-10-06 之前 SPA 与静态页并存时的问题）。
+   ==========================================================================
+   注意：本文件是「原始文本元素」的内容，注释里绝不能出现 style 标签的
+   开闭字面量（例如结束标签那七个字符），否则浏览器会在那里提前收尾，
+   后面的 CSS 全部变成正文文本、整站无样式。ssg.mjs 构建期有断言拦截。
+   ========================================================================== */
+:root {
+  /* —— 方案A 原生令牌 —— */
+  --paper: #FAF9F6;
+  --paper-2: #F3F1EC;
+  --ink: #1C1A17;
+  --ink-2: #57534E;
+  --ink-3: #A8A29E;
+  --line: #E7E5E0;
+  --accent: #B4530A;
+  --accent-soft: #F6E8DC;
+  --green: #3F6C51;
+  --green-soft: #E7F0EA;
+  --amber: #9A6700;
+  --amber-soft: #FBF0D7;
+  --red: #8C2F1B;
+  --red-soft: #F7E4DF;
+  --code-bg: #F3F1EC;
+  --serif: 'Noto Serif SC', 'Songti SC', Georgia, serif;
+  --sans: 'Noto Sans SC', -apple-system, 'PingFang SC', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* —— 语义别名 ——
+     早期 Vue 组件的 scoped 样式全部引用下面这套名字
+     （--bg-card / --text-secondary / --radius / --difficulty-easy …）。
+     这里把每个名字重新指向上面的方案A 令牌，而不是去改上百处引用；
+     新增样式请直接用方案A 令牌。 */
+  --bg-primary: var(--paper);
+  --bg-secondary: var(--paper-2);
+  --bg-tertiary: var(--paper-2);
+  --bg-card: #fff;
+  --bg-hover: var(--paper-2);
+
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-2);
+  --text-tertiary: var(--ink-3);
+  --text-inverse: #fff;
+
+  --border-color: var(--line);
+  --border-light: var(--line);
+
+  --accent-hover: #96450A;
+  --accent-light: var(--accent-soft);
+
+  --success: var(--green);
+  --success-light: var(--green-soft);
+  --warning: var(--amber);
+  --warning-light: var(--amber-soft);
+  --danger: var(--red);
+  --danger-light: var(--red-soft);
+  --default: var(--ink-3);
+  --default-light: var(--paper-2);
+
+  --difficulty-easy: var(--green);
+  --difficulty-medium: var(--amber);
+  --difficulty-hard: var(--red);
+
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  --shadow-sm: none;
+  --shadow: 0 1px 2px rgba(28, 26, 23, 0.04);
+  --shadow-md: 0 4px 14px rgba(28, 26, 23, 0.06);
+  --shadow-hover: 0 10px 30px rgba(28, 26, 23, 0.08);
+
+  --content-max-width: 860px;
+
+  --font-sans: var(--sans);
+  --font-serif: var(--serif);
+  --font-mono: var(--mono);
+
+  --transition: all 0.2s ease;
+  --transition-slow: all 0.3s ease;
+}

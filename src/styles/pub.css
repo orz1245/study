@@ -1,0 +1,194 @@
+/* ==========================================================================
+   文章与公共组件排版：面包屑 / 标题 / 正文 / 课程目录 / 题库行 / 上下页 / 卡片网格
+   仅静态页使用（岛脚本页面另有 src/styles/islands.css）。
+   ========================================================================== */
+.crumb { padding: 26px 0 0; font-size: 13px; color: var(--ink-3) }
+.crumb a:hover { color: var(--accent) }
+.crumb .sep { margin: 0 8px; color: var(--line) }
+
+h1.page { font-family: var(--serif); font-size: 30px; font-weight: 900; line-height: 1.35; margin: 14px 0 6px }
+/* 标题后面跟的数量（「系统课程（14）」「JS 逆向基础入门（17 节课）」）：
+   同一视觉语言，跟着标题走但不抢戏 */
+h1.page .n, .sec-head h2 .n { font-family: var(--sans); font-weight: 400; color: var(--ink-3) }
+h1.page .n { font-size: 15px }
+.sec-head h2 .n { font-size: 14px }
+.page-sub { color: var(--ink-2); font-size: 14.5px; margin-bottom: 8px }
+/* 页头（h1 + 可选副标题）与正文之间的呼吸。
+   2026-10-06 之前这里有一条 3px 黑色横线，后来「17 节课」「JavaScript」
+   两个胶囊标签都下线了，只留下一根孤零零的线，于是整条规则连同 511 个空 div
+   一起删掉；2026-10-07 全站横线统一下线后，这里靠显式间距撑开：
+   数值取原来的 18px(padding) + 26px(margin) ≈ 34px，落差与其他页面一致。 */
+main.article > h1.page + *:not(.page-sub),
+main.article > h1.page + .page-sub + * { margin-top: 34px }
+
+main.article { padding-bottom: 8px }
+.article h2 { font-family: var(--serif); font-size: 21px; font-weight: 700; margin: 34px 0 14px }
+.article h3 { font-family: var(--serif); font-size: 17px; font-weight: 700; margin: 26px 0 10px }
+.article p { margin: 0 0 14px; color: var(--ink-2) }
+.article ul, .article ol { margin: 0 0 14px; padding-left: 22px; color: var(--ink-2) }
+.article li { margin-bottom: 6px }
+.article blockquote.q {
+  border-left: 3px solid var(--accent); background: var(--accent-soft);
+  border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 0 0 20px;
+  font-family: var(--serif); font-size: 16.5px; color: var(--ink);
+}
+/* ---------- 课后练习：问题与答案分样式（2026-10-07 用户要求） ----------
+   构建期由 ssg 的 styleExercise 打类（小节范围内）。两种问题形态：
+   p.ex-q（「练习 N：」行）与 ol.ex-ol（编号列表卡，计数器出 01/02 序号）；
+   三种答案形态：blockquote.ex-a / p.ex-a / li.ex-a，统一用强调色左竖线引出 ——
+   竖线是 border-left，不在全站「禁横向分隔线」的拦截范围（那条只禁 top/bottom）。 */
+.article p.ex-q {
+  background: var(--paper-2); border-radius: 8px;
+  padding: 12px 16px; margin: 0 0 10px; color: var(--ink);
+}
+.article p.ex-q strong { color: var(--accent); font-weight: 700; margin-right: 4px }
+.article ol.ex-ol { list-style: none; padding-left: 0; counter-reset: ex; margin: 0 0 10px }
+.article ol.ex-ol > li {
+  counter-increment: ex; position: relative;
+  background: var(--paper-2); border-radius: 8px;
+  padding: 12px 16px 12px 46px; margin: 0 0 12px; color: var(--ink);
+}
+.article ol.ex-ol > li::before {
+  content: counter(ex, decimal-leading-zero);
+  position: absolute; left: 16px; top: 13px;
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--accent);
+}
+.article ol.ex-ol > li > ul { list-style: none; padding-left: 0; margin: 10px 0 0 }
+.article blockquote.ex-a, .article p.ex-a, .article li.ex-a { border-left: 3px solid var(--accent) }
+.article blockquote.ex-a { background: none; border-radius: 0; padding: 2px 0 2px 16px; margin: 0 0 22px }
+.article li.ex-a {
+  background: #fff; border-radius: 0 8px 8px 0; padding: 10px 14px;
+  margin: 0; color: var(--ink-2); font-size: 14px;
+}
+.article blockquote.ex-a p, .article p.ex-a { margin: 0; color: var(--ink-2) }
+.article p.ex-a strong, .article li.ex-a strong, .article blockquote.ex-a strong { color: var(--accent) }
+.article code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); border-radius: 4px; padding: 1px 6px }
+.article pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; overflow: auto; margin: 0 0 18px;
+}
+.article pre code { background: none; padding: 0; font-size: 13px; line-height: 1.7 }
+.article table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 13.5px }
+.article th, .article td { border: 1px solid var(--line); padding: 7px 12px; text-align: left }
+.article th { background: var(--paper-2) }
+
+/* ---------- 代码块与复制按钮 ----------
+   结构由 src/utils/markdown.js 的 renderer.code() 生成：一个 .code-block 里放
+   复制按钮（SVG 图标，非文字）+ pre/code。按钮绝对定位悬浮在右上角，
+   不给 pre 预留任何空行；常显（2026-10-07 用户要求：不要悬浮才出现），无外框。
+   定位三要素：.code-block{position:relative} + .code-copy{position:absolute}。
+   点击逻辑在 public/islands/code.js（构建期不产出任何内联脚本）。
+   注意：本文件会被内联进每个页面的 style 标签，注释里不要写出具体 HTML 标签
+   或按钮的 HTML 字面量，否则「这页有没有复制按钮」这类字符串断言会把注释也算进去。 */
+.code-block { position: relative }
+.code-copy {
+  position: absolute; top: 8px; right: 10px; z-index: 2;
+  width: 28px; height: 28px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 6px;
+  background: none; color: var(--ink-3); cursor: pointer;
+  opacity: .75; user-select: none;
+  transition: opacity .15s ease, color .15s ease;
+}
+.code-copy:hover { opacity: 1; color: var(--accent) }
+.code-copy:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px }
+.code-copy .i-check { display: none }
+.code-copy.copied { opacity: 1; color: var(--green) }
+.code-copy.copied .i-copy { display: none }
+.code-copy.copied .i-check { display: block }
+
+.lesson-list { margin: 8px 0 0 }
+/* 节（子级）：缩进表达从属；l1/l2 编号已按用户要求删掉（2026-10-07） */
+.lesson-list a {
+  display: flex; gap: 14px; padding: 11px 4px 11px 24px; align-items: baseline;
+}
+.lesson-list a:hover { color: var(--accent) }
+.lesson-list .t { flex: 1; font-size: 14.5px }
+
+/* 章（父级）：浅底色块与节行区分开，组与组之间用间距撑开（全站禁横线） */
+.chap {
+  font-family: var(--serif); font-weight: 700; font-size: 15.5px;
+  margin: 36px 0 8px; padding: 10px 14px;
+  background: var(--paper-2); border-radius: 8px;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.chap .n { margin-left: auto; font-size: 12px; color: var(--ink-3); font-family: var(--sans); font-weight: 400 }
+
+/* 「课后练习」前的三点隔断（lessonGap 构建期插入）：替代被禁的横向分隔线 */
+.sec-gap { margin: 46px 0 0; text-align: center; color: var(--ink-3); font-size: 12px; letter-spacing: .5em; user-select: none }
+.sec-gap + h3 { margin-top: 10px }
+
+.qrow { padding: 18px 4px }
+.qrow a { display: block }
+.qrow .t { font-size: 15px; font-weight: 600; line-height: 1.6 }
+.qrow:hover .t { color: var(--accent) }
+.qrow .tags { display: flex; gap: 8px; margin-top: 6px }
+.qrow .tags span { font-size: 12px; color: var(--ink-3) }
+
+.footnav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 38px 0 12px }
+.footnav a { border: 1px solid var(--ink); border-radius: 10px; padding: 14px 18px }
+.footnav a:hover { background: var(--paper-2) }
+.footnav .t { font-size: 13.5px; font-weight: 600; line-height: 1.5 }
+.footnav .dir { display: block; font-size: 12px; color: var(--ink-3); letter-spacing: .15em; margin-top: 6px }
+.footnav .next { text-align: right }
+.footnav .next .t { color: var(--accent) }
+.footnav a.dis { color: var(--ink-3); border-style: dashed; pointer-events: none }
+
+.cta-line { margin: 22px 0 0 }
+.cta-line a { display: inline-block; background: var(--accent); color: #fff; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 500 }
+.cta-line a:hover { filter: brightness(1.06) }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 14px; margin: 18px 0 0 }
+.card-grid a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: #fff; color: inherit }
+.card-grid a:hover { border-color: var(--accent) }
+.card-grid h3 { font-family: var(--serif); font-size: 16.5px; font-weight: 700; margin: 0 0 6px }
+.card-grid p { font-size: 13px; color: var(--ink-3); line-height: 1.7; margin: 0 0 10px }
+.card-grid .f { font-size: 12.5px; color: var(--accent) }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0 }
+.chips a {
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px;
+  font-size: 13.5px; color: var(--ink-2); background: #fff;
+}
+.chips a:hover { border-color: var(--accent); color: var(--accent) }
+
+/* ---------- 首页 ---------- */
+/* 标题上方的 kicker 栏目名已下线（2026-10-07）：面包屑与 h1 已经说明位置，
+   再叠一行全大写英文栏目名是画蛇添足。 */
+.hero { padding: 72px 0 48px }
+.hero h1 { font-family: var(--serif); font-size: 38px; font-weight: 900; line-height: 1.3; margin: 0 0 18px }
+.hero .lead { font-size: 16px; line-height: 1.9; color: var(--ink-2); margin: 0 0 34px }
+/* 统计带（2026-10-07 用户定稿）：放在文案与按钮之间，撑满正文全部宽度。
+   三项等分、容器内水平居中，项与项之间用短竖线区隔——竖线是纵向的，
+   不在「全站禁横向分隔线」的拦截范围（断言只查 border-top/bottom）。 */
+.hero-meta { display: flex; margin: 0 0 34px }
+.hero-meta > div { flex: 1; text-align: center; position: relative }
+.hero-meta > div + div::before {
+  content: ''; position: absolute; left: 0; top: calc(50% - 17px);
+  width: 1px; height: 34px; background: var(--line);
+}
+.hero-meta b { font-family: var(--serif); font-size: 30px; font-weight: 700; display: block; font-variant-numeric: tabular-nums }
+.hero-meta span { font-size: 12.5px; color: var(--ink-3) }
+/* hero 按钮（开始学习/浏览面试题）已随 2026-10-07 改版下线：
+   下方两个栏目本身就是入口，首屏不再放重复 CTA。 */
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 36px 0 4px }
+.sec-head h2 { font-family: var(--serif); font-size: 24px; font-weight: 700; margin: 0 }
+.sec-head a { font-size: 13.5px; color: var(--accent); white-space: nowrap }
+
+/* ---------- 支持我们 ---------- */
+.donate-qrs { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; padding: 10px 0 4px }
+.qr-card { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 12px }
+.qr-card img { width: 220px; height: 220px; object-fit: contain; background: #fff; border-radius: 8px; display: block }
+.qr-badge { font-size: 13.5px; font-weight: 700; padding: 4px 16px; border-radius: 999px; color: #fff }
+.qr-badge.wechat { background: #07c160 }
+.qr-badge.alipay { background: #1677ff }
+.donate-thanks { text-align: center; font-size: 13px; color: var(--ink-3); margin: 18px 0 0 }
+
+@media (max-width: 640px) {
+  .footnav { grid-template-columns: 1fr }
+  h1.page { font-size: 24px }
+  .hero h1 { font-size: 27px }
+  .hero-meta { flex-wrap: wrap }
+  .hero-meta > div { flex: 1 1 30% }
+  .qr-card img { width: 160px; height: 160px }
+}

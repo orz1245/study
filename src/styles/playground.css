@@ -1,0 +1,101 @@
+/* ==========================================================================
+   演练场（题目详情页）
+   --------------------------------------------------------------------------
+   交互按 REFACTOR-SEO-PLAN.md §3.2 定稿实现，原型见 redesign/方案A-题目详情页.html：
+   · 不做独立页面、无 URL、不进 sitemap
+   · 「打开演练场」是常驻右下角的悬浮按钮（不占正文流、不参与页头排版）
+   · 右下角悬浮窗，无遮罩不挡正文；拖左上角手柄缩放（原生 resize 手感反向，弃用）；
+     × 关闭收回成悬浮按钮（代码保留）；Esc 同关闭
+   · 编辑器空启动、无预置示例；CONSOLE 输出 + 运行 / 清空
+   行为在 public/islands/playground.js，这份样式只在挂了演练场的页面内联。
+   ========================================================================== */
+.pg-open {
+  position: fixed; right: 22px; bottom: 22px; z-index: 40;
+  border: 1px solid var(--line); background: #fff; border-radius: 999px;
+  padding: 9px 16px; font-size: 13.5px; font-family: var(--sans);
+  color: var(--ink-2); cursor: pointer; transition: .15s;
+  box-shadow: 0 6px 20px rgba(28, 25, 20, .13);
+}
+.pg-open:hover { border-color: var(--accent); color: var(--accent) }
+.pg-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* 浮层打开时按钮让位（两者都在右下角，z-index 也接近）。
+   必须显式写 display:none —— .pg-open 自身声明了 position:fixed，
+   单靠 UA 的 [hidden]{display:none} 容易被后续规则盖掉。 */
+.pg-open[hidden] { display: none }
+
+.pg {
+  position: fixed; right: 22px; bottom: 22px;
+  width: 520px; height: 480px; min-width: 320px; min-height: 200px;
+  max-width: 94vw; max-height: 86vh;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(28, 25, 20, .18);
+  z-index: 41; display: none; flex-direction: column; overflow: hidden;
+}
+.pg.on { display: flex }
+
+/* 缩放手柄固定在左上角：面板锚定右下角，原生 resize:both 的右下手柄
+   拖动方向是反的（拖角不跟手、面板朝反方向长大），所以弃用原生缩放。
+   拖拽行为在 playground.js（pointer capture，最小 320×200，最大 94vw×86vh）。 */
+.pg-grip {
+  position: absolute; top: 0; left: 0; width: 26px; height: 26px;
+  cursor: nwse-resize; touch-action: none; z-index: 2;
+}
+.pg-grip::before {
+  content: ''; position: absolute; top: 8px; left: 8px; width: 9px; height: 9px;
+  /* 斜线用渐变画而不是 border：全站断言拦截一切 border-top/border-bottom（横向分隔线规则） */
+  background: linear-gradient(135deg, transparent 42%, var(--line) 42%, var(--line) 58%, transparent 58%);
+}
+.pg-grip:hover::before, .pg-grip:active::before {
+  background: linear-gradient(135deg, transparent 42%, var(--ink-3) 42%, var(--ink-3) 58%, transparent 58%);
+}
+
+.pg-head {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+  flex: none; background: var(--paper-2);
+}
+.pg-head b { font-family: var(--serif); font-size: 15px }
+.pg-head .pg-ref {
+  font-size: 12px; color: var(--ink-3); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pg-head .ctl {
+  border: none; background: none; width: 26px; height: 26px; border-radius: 6px;
+  font-size: 14px; color: var(--ink-3); cursor: pointer; line-height: 1; flex: none;
+}
+.pg-head .ctl:hover { background: var(--paper-2); color: var(--ink) }
+
+.pg-editor {
+  flex: 1; margin: 0; padding: 14px 16px; border: none; outline: none; resize: none;
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  color: var(--ink); background: var(--paper); min-height: 0;
+}
+.pg-editor::placeholder { color: var(--ink-3) }
+
+.pg-out {
+  background: var(--code-bg);
+  padding: 12px 16px; font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+  min-height: 72px; max-height: 150px; overflow: auto; flex: none;
+  white-space: pre-wrap; word-break: break-word;
+}
+.pg-out .lbl {
+  font-family: var(--sans); font-size: 10.5px; letter-spacing: .12em;
+  color: var(--ink-3); margin-bottom: 6px;
+}
+
+.pg-foot { display: flex; gap: 8px; padding: 12px 16px; flex: none }
+.pg-foot .run {
+  flex: 1; background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 9px 0; font-size: 13.5px; font-family: var(--sans); cursor: pointer;
+}
+.pg-foot .run:hover { filter: brightness(1.06) }
+.pg-foot .clr {
+  background: none; border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 16px; font-size: 12.5px; font-family: var(--sans);
+  color: var(--ink-2); cursor: pointer;
+}
+.pg-foot .clr:hover { border-color: var(--accent); color: var(--accent) }
+
+/* 手机上浮层近乎全屏，按钮也贴近边缘，省点边距 */
+@media (max-width: 680px) {
+  .pg-open { right: 14px; bottom: 14px; padding: 8px 13px; font-size: 12.5px }
+}

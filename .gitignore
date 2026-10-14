@@ -1,0 +1,46 @@
+# ===== 依赖 =====
+node_modules/
+miniprogram/miniprogram_npm/
+miniprogram/node_modules/
+
+# ===== 构建产物 / 缓存 =====
+dist/
+dist_*/
+dist_old*/
+dist_bak/
+.temp/
+.cache/
+vite.config.js.timestamp-*.mjs
+*.log
+_build_local.log
+_deploy2.log
+_preview.log
+package-lock.json
+
+# ===== 临时 / 校验脚本(非交付) =====
+_tmp_enh/
+_verify_*/
+_verify_astpro/
+scan_backticks.cjs
+_js_syntax_check.mjs
+_validate_fmt.mjs
+_render_harness.mjs
+_verify_browser.mjs
+_enhance.mjs
+validate.mjs
+_*.cjs
+
+# ===== 小红书草稿(非规范数据源) =====
+src/data/_xhs*.txt
+
+# ===== 工具/环境 =====
+.workbuddy/
+.vscode/
+.idea/
+.DS_Store
+
+# ===== 微信开发者工具本地配置(可选, 不入库) =====
+project.private.config.json
+
+# ===== wrangler 临时产物 =====
+.wrangler/

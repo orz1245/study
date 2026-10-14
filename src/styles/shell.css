@@ -1,0 +1,82 @@
+/* ==========================================================================
+   外壳样式：全局重置 + 顶部导航 + 页脚
+   全站 530 个页面共用一套外壳，构建期内联（见 scripts/ssg.mjs）。
+   ========================================================================== */
+a { color: inherit; text-decoration: none }
+* { margin: 0; padding: 0; box-sizing: border-box }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  /* 粘底页脚（2026-10-07 用户要求）：正文矮的页面（如「支持我们」）
+     页脚也要贴住浏览器底部，不留出页底空白。 */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main { flex: 1; min-height: calc(100vh - 150px) }
+
+nav.top {
+  position: sticky;
+  top: 0;
+  background: rgba(250, 249, 246, 0.95);
+  /* 导航与正文的边界不用横线（全站禁 border 分隔线），用一层很浅的投影 */
+  box-shadow: 0 1px 10px rgba(28, 25, 20, .07);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px 48px; width: 100%; flex: 1 }
+/* 2026-10-07 关键坑：body 改 flex column 后，.wrap 的 margin:0 auto（auto 边距）
+   会让 flex 子项放弃 stretch、收缩到内容宽度——留言板/支持我们等内容少的页面
+   整体变窄、页脚上方留白。显式 width:100% 恢复占满（max-width 1080 仍居中），
+   纵向 flex:1 让 .wrap 撑满剩余高度，页脚真正贴底。 */
+/* 关键修复：nav 内层复用 .wrap，会连带 48px 底部内边距，把 sticky 头部
+   撑到 112px 高（内容偏上、盖住正文）。导航内层去掉纵向内边距，
+   内容靠 height:64px + align-items:center 垂直居中。 */
+nav.top .wrap { padding: 0 32px }
+/* 导航按方案A定稿：64px 高、logo 20px、链接 14px，搜索胶囊独立在右侧 */
+.nav-in { display: flex; align-items: center; height: 64px; gap: 36px }
+.logo { font-family: var(--serif); font-weight: 900; font-size: 20px; letter-spacing: .02em }
+.logo em { color: var(--accent); font-style: normal }
+.nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--ink-2) }
+.nav-links a:hover { color: var(--ink) }
+/* 当前栏目高亮：静态页按 active 参数直出 .on */
+.nav-links a.on { color: var(--ink); font-weight: 600 }
+.nav-right { margin-left: auto; display: flex; align-items: center }
+
+/* 全局搜索（方案A 的导航胶囊）：Enter 跳 /interview/?q=，Cmd/Ctrl+K 聚焦。
+   行为在 public/islands/nav-search.js（全站每页都加载）。 */
+.nav-search {
+  flex: none; width: 210px; padding: 7px 16px;
+  font-size: 13px; font-family: var(--sans); color: var(--ink);
+  background: #fff; border: 1px solid var(--line); border-radius: 999px; outline: none;
+}
+.nav-search::placeholder { color: var(--ink-3) }
+.nav-search:focus { border-color: var(--accent) }
+
+/* sticky 导航高 64px：锚点跳转时标题要停在导航下方，而不是被它盖住 */
+h1, h2, h3 { scroll-margin-top: 80px }
+
+/* 页脚只剩一行版权（2026-10-07 定稿）：不要链接、不要栏目、不要简介。 */
+.colophon {
+  /* 页脚通栏（2026-10-07 用户要求：宽度占满整个浏览器），投影随之全宽，
+     版权行居中；与页头一样是全宽元素。 */
+  padding: 20px 32px 40px;
+  font-size: 12.5px; color: var(--ink-3);
+  text-align: center;
+  box-shadow: 0 -1px 10px rgba(28, 25, 20, .07);
+}
+
+/* 页脚整块下线（2026-10-07，用户要求）：四栏链接 → 极简一行 → 一行版权。
+   别再加回 footer 里的任何链接/栏目元素。 */
+
+@media (max-width: 680px) {
+  .nav-in { gap: 18px }
+  .nav-links { gap: 14px; font-size: 12.5px; overflow-x: auto }
+  .wrap { padding: 0 18px 40px }
+  .nav-search { display: none }
+  .colophon { padding: 0 18px 28px }
+}

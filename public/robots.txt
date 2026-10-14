@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# /progress/ 是「学习仪表盘」：内容全部来自浏览器本地存储（做题掌握度），
+# 爬虫打开是空页面，已用 <meta name="robots" content="noindex, follow"> 声明不收录，
+# 同时不写入 sitemap.xml。
+# 这里刻意**不加** Disallow：Disallow 会让爬虫读不到那个 noindex 标记，
+# 结果页面反而可能以「无内容的 URL」形式被登记。保持可抓取才能让 noindex 生效。
+#
+# 旧地址 /study/ 已 301 永久跳转到 /progress/。
+
+Sitemap: https://study.791860.xyz/sitemap.xml
+Sitemap: https://study.791860.xyz/sitemap-index.xml

@@ -1,0 +1,12 @@
+name = "study"
+pages_build_output_dir = "dist"
+# Pages Functions 的运行时不带 Node 内置模块；wrangler 在发布时生成的 Functions 外壳
+# 会引用 node:stream，不声明 nodejs_compat 就会被运行时以
+# `No such module "node:stream"` 拒绝发布（实测：静态资源已上传成功、Functions 发布失败）。
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 留言板存储：Cloudflare KV
+[[kv_namespaces]]
+binding = "GUESTBOOK"
+id = "1d958f291e0a4e6a82b5e6e9db0e8593"

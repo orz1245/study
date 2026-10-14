@@ -1,0 +1,9 @@
+# 这个文件被 vite build 复制到 dist/，随后由 scripts/ssg.mjs 整体重写（旧 URL 全量 301）。
+# 这里只保留「不依赖构建期数据」的那条规则。
+#
+# 刻意不写 `/* /index.html 200` 全量 SPA 回退：站内每个合法路由都已预渲染静态页，
+# 回退规则只会把不存在的 URL 也变成 200（soft 404），稀释搜索引擎对站点质量的判断。
+# 未知路径由 Pages 回落到 dist/404.html，返回真实 404 状态码。
+
+# 百度验证文件：保持 .html 路径可访问，避免被 Pretty URLs 308 到无后缀地址
+/baidu_verify_codeva-fyQwirCBsE.html /baidu_verify_codeva-fyQwirCBsE 200

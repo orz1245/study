@@ -1,0 +1,17 @@
+{
+  "name": "frontend-learning-net",
+  "version": "1.0.0",
+  "description": "前端学习网 - 前端面试题库（289 题）与系统课程（14 门），纯静态站 + 原生 JS 小岛",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/ssg.mjs",
+    "preview": "node scripts/serve-dist.mjs",
+    "verify": "node scripts/verify-routes.mjs && node scripts/test-islands.mjs",
+    "test": "node scripts/test-islands.mjs",
+    "check": "npm run build && npm run verify"
+  },
+  "dependencies": {
+    "highlight.js": "^11.10.0",
+    "marked": "^14.1.2"
+  }
+}

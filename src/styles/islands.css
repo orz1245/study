@@ -1,0 +1,199 @@
+/* ==========================================================================
+   小岛页面样式：题库列表 / 学习仪表盘 / 留言板
+   这些页面是「静态 HTML + 少量原生 JS」，样式必须与其余 520+ 个静态页
+   完全同源（都用 --paper / --ink / --accent 这组方案A 令牌）。
+   ========================================================================== */
+
+/* ---------- 页头 ---------- */
+.head { padding: 26px 0 30px }
+.head h1 { font-family: var(--serif); font-weight: 900; font-size: 32px; line-height: 1.3; margin: 0 }
+/* desc 不限宽（用户 2026-10-07）：段落必须占满容器宽度再自然折行，
+   卡 620px 会在右侧留一大块空白时提前折行。 */
+.head .desc { margin-top: 12px; font-size: 14.5px; line-height: 1.85; color: var(--ink-2) }
+.progress { margin-top: 20px; display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap }
+/* 2026-10-07 用户要求：题库页进度条加长加粗（占满行宽），统计数字上色 */
+.progress .bar { flex: 1; min-width: 220px; height: 10px }
+.progress #pstat { white-space: nowrap; font-variant-numeric: tabular-nums }
+.ps-done { color: var(--green); font-weight: 600 }
+.ps-mid { color: var(--amber); font-weight: 600 }
+/* 进度条（2026-10-07 样式精修）：轨道去边框、用 --line 加深一档承托，
+   填充用强调色同系渐变（左深右浅）增加体积感，缓动用软曲线。 */
+.bar { flex: 0 0 260px; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(28, 25, 20, .05) }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-hover), var(--accent)); border-radius: 999px; transition: width .45s cubic-bezier(.22, .61, .36, 1) }
+
+/* ---------- 筛选区 ---------- */
+.filters { padding: 18px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.chip {
+  display: inline-block; border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 14px; font-size: 13px; color: var(--ink-2); background: #fff;
+  cursor: pointer; font-family: var(--sans); line-height: 1.6; transition: border-color .15s, color .15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent) }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 500 }
+.filters .divider { width: 1px; height: 22px; background: var(--line); margin: 0 6px }
+.mfilter { margin-left: auto; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-3); flex-wrap: wrap }
+.mfilter .chip { padding: 4px 12px }
+
+/* 搜索框（2026-10-07 交互升级）：
+   1. 吸顶——长列表滚起来搜索始终可用，top 对齐 64px 导航下沿；
+   2. 输入时命中关键词在标题里标成强调色；
+   3. Esc 清空、/ 聚焦（行为在 interview.js）。 */
+.search-wrap {
+  position: sticky; top: 64px; z-index: 5; background: var(--paper);
+  padding: 16px 0 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap
+}
+.search-input {
+  flex: 1; min-width: 220px; border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 18px; font-size: 13.5px; color: var(--ink); background: #fff;
+  font-family: var(--sans); outline: none;
+}
+.search-input::placeholder { color: var(--ink-3) }
+.search-input:focus { border-color: var(--accent) }
+.search-count { font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap }
+/* 筛选/搜索生效时计数用强调色，一眼能看出「列表正在被过滤」 */
+.search-count.on { color: var(--accent); font-weight: 600 }
+/* 关键词高亮：编辑部式处理——只变色不加底色 */
+.row h3 mark { background: none; color: var(--accent) }
+.search-clear { border: 1px solid var(--line); background: #fff; color: var(--ink-3); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; font-family: var(--sans) }
+.search-clear:hover { border-color: var(--accent); color: var(--accent) }
+
+/* ---------- 列表 ---------- */
+.list { padding: 8px 0 20px }
+.row {
+  display: flex; align-items: flex-start; gap: 18px; padding: 24px 8px;
+  transition: background .15s;
+}
+.row:hover { background: rgba(246, 232, 220, .35) }
+/* .row 自己声明了 display:flex，会盖掉 UA 的 [hidden]{display:none} ——
+   筛选时用 hidden 属性藏行就必须显式补这条，否则「过滤」看起来毫无反应。 */
+.row[hidden], .empty[hidden] { display: none }
+.row .no { font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); width: 40px; flex: none; padding-top: 4px }
+.row .body { flex: 1; min-width: 0 }
+.row h3 { font-family: var(--serif); font-size: 17.5px; font-weight: 700; line-height: 1.55; margin: 0 }
+.row:hover h3 { color: var(--accent) }
+.row .ex {
+  margin: 8px 0 0; font-size: 13.5px; line-height: 1.8; color: var(--ink-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.row .tags { margin-top: 12px; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-3); flex-wrap: wrap }
+.tag-d {
+  display: inline-block; border: 1px solid var(--line); border-radius: 4px;
+  padding: 1px 9px; font-size: 11.5px; font-weight: 600; color: var(--ink-2);
+}
+.tag-d.d1 { color: var(--green); border-color: var(--green) }
+.tag-d.d2 { color: var(--amber); border-color: var(--amber) }
+.tag-d.d3 { color: var(--red); border-color: var(--red) }
+
+.mastery { flex: none; padding-top: 4px }
+.m-dot {
+  border: none; font-family: var(--sans); font-size: 11.5px; border-radius: 4px;
+  padding: 3px 10px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+/* 2026-10-07 用户要求：掌握度按钮不加背景色，只靠文字颜色区分状态。 */
+.m-done { background: none; color: var(--green) }
+.m-mid { background: none; color: var(--amber) }
+.m-none { background: none; color: var(--ink-3) }
+.m-dot:hover { opacity: .75 }
+.row.is-target { background: var(--accent-soft) }
+
+.empty { padding: 56px 0; text-align: center; color: var(--ink-3); font-size: 14px }
+
+/* ---------- 仪表盘 ---------- */
+.panel { margin: 28px 0 0 }
+.panel-title { font-family: var(--serif); font-size: 20px; font-weight: 700; margin: 0 0 6px }
+.dash-top { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px }
+.dash-top .bar { flex: 1; min-width: 200px; height: 12px }
+/* 「清空掌握度」由小岛搬进总览行，钉在进度条后面 */
+.dash-top .btn-line { flex: none }
+.dash-num { display: flex; align-items: baseline; gap: 10px }
+.dash-num b { font-family: var(--serif); font-size: 34px; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums }
+.dash-num span { font-size: 13px; color: var(--ink-3) }
+.dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px }
+
+/* ---------- 纯 CSS 悬浮提示 ----------
+   用法：元素挂 data-tip 属性（值为说明文案），悬停时在上方弹出深色气泡。
+   位置声明了 relative，按项目规则必须显式补 [hidden] 的 display:none。 */
+[data-tip] { position: relative }
+[data-tip][hidden] { display: none }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 60;
+  background: var(--ink); color: var(--paper);
+  font-size: 12px; line-height: 1.4; padding: 7px 11px; border-radius: 6px;
+  white-space: nowrap; pointer-events: none;
+}
+.dash-stats .stat { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; background: #fff }
+.dash-stats .stat b { font-family: var(--serif); font-size: 24px; font-weight: 700; display: block; font-variant-numeric: tabular-nums }
+.dash-stats .stat span { font-size: 12.5px; color: var(--ink-3) }
+.dash-stats .s-done b { color: var(--green) }
+.dash-stats .s-mid b { color: var(--amber) }
+.mod-group { margin-top: 18px }
+.mod-title { font-family: var(--serif); font-weight: 700; font-size: 16px; margin: 0 0 12px }
+
+.cat-block { padding: 22px 0 }
+.cat-block .cb-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px }
+.cat-block .cb-head h3 { font-family: var(--serif); font-size: 17px; font-weight: 700; margin: 0 }
+.cat-block .cb-head .cb-num { margin-left: auto; font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums }
+.cat-block .bar { flex: 1 }
+.cat-block .cb-body { display: flex; align-items: center; gap: 14px }
+.cat-block .links { margin-top: 10px; font-size: 12.5px; color: var(--ink-3) }
+.cat-block .links a { color: var(--accent) }
+.btn-line {
+  border: 1px solid var(--line); background: #fff; color: var(--ink-2);
+  border-radius: 8px; padding: 8px 18px; font-size: 13.5px; cursor: pointer; font-family: var(--sans);
+}
+.btn-line:hover { border-color: var(--accent); color: var(--accent) }
+.btn-danger:hover { border-color: var(--red); color: var(--red) }
+
+/* ---------- 留言板 ----------
+   2026-10-07 恢复方案A 的左右结构：消息列表占左（主列），
+   「写留言」表单做成右侧 320px 卡片、sticky 跟随；窄屏折叠成单列。 */
+.gb-head h1 { font-family: var(--serif); font-weight: 900; font-size: 30px; margin: 0 0 6px }
+.gb-sub { margin: 0; font-size: 13.5px; color: var(--ink-3) }
+.gb-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 52px; align-items: start; margin-top: 30px }
+.gb-side { position: sticky; top: 84px }
+.gb-form { padding: 20px 22px; background: #fff; border: 1px solid var(--line); border-radius: 12px }
+.gb-form h2 { font-family: var(--serif); font-size: 18px; font-weight: 700; margin: 0 0 14px }
+.gb-hint { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-3) }
+@media (max-width: 680px) {
+  .gb-layout { grid-template-columns: 1fr; gap: 26px }
+  .gb-side { position: static }
+}
+.gb-field { position: relative; margin-bottom: 12px }
+.gb-input, .gb-textarea {
+  width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px;
+  background: #fff; color: var(--ink); font-size: 14px; font-family: var(--sans); resize: none;
+}
+.gb-input:focus, .gb-textarea:focus { outline: none; border-color: var(--accent) }
+.gb-count { display: block; text-align: right; margin-top: 4px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums }
+.gb-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none }
+.gb-form-error { margin: 0 0 12px; font-size: 13px; color: var(--red) }
+.gb-actions { display: flex }
+.gb-submit {
+  width: 100%; padding: 10px 24px; border: none; border-radius: 8px; background: var(--accent);
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans);
+}
+.gb-submit:hover:not(:disabled) { filter: brightness(1.06) }
+.gb-submit:disabled { opacity: .5; cursor: not-allowed }
+.gb-state { text-align: center; padding: 40px 0; color: var(--ink-3); font-size: 14px }
+.gb-state--error { color: var(--red) }
+.gb-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px }
+/* 每条留言一张浅卡片，与右侧「写留言」卡片同语言；条目间靠 gap 播间隔，
+   不用横向分隔线（全站禁 border-top/bottom）。 */
+.gb-item { padding: 18px 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px }
+.gb-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px }
+.gb-avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff;
+  font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.gb-name { font-size: 14px; font-weight: 600; color: var(--ink) }
+.gb-time { margin-left: auto; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums }
+.gb-content { margin: 0; font-size: 14px; line-height: 1.75; color: var(--ink-2); white-space: pre-wrap; word-break: break-word }
+
+@media (max-width: 680px) {
+  .head h1 { font-size: 24px }
+  .row .no { display: none }
+  .mastery { padding-top: 2px }
+  .mfilter { margin-left: 0 }
+  .bar { flex: 0 0 160px }
+}

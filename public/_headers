@@ -1,0 +1,35 @@
+# ===== 安全响应头 =====
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+
+# 强制 HTML 文本以 UTF-8 编码返回
+/*.html
+  Content-Type: text/html; charset=utf-8
+
+# 小岛脚本：强制 UTF-8 编码并开启边缘回源校验
+/islands/*.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: public, must-revalidate, max-age=300
+
+# 题库搜索索引：按需拉取
+/search-index.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, must-revalidate, max-age=3600
+
+# robots.txt：明确纯文本 UTF-8 与稳定边缘缓存，防止爬虫探针超时
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
+
+# Sitemap 与 Sitemap Index：明确 XML 编码 + stale-while-revalidate 边缘缓存，
+# 避免 Googlebot 命中冷节点同步回源抖动而触发 GSC 报「无法读取」
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
+
+/sitemap-index.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
