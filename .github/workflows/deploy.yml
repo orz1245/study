@@ -1,0 +1,40 @@
+# Cloudflare Pages 自动部署：push 到 master 触发
+# 前置条件（GitHub 仓库 Settings → Secrets and variables → Actions 配置）：
+#   CLOUDFLARE_API_TOKEN  —— Cloudflare API Token（权限：Cloudflare Pages Edit）
+#   CLOUDFLARE_ACCOUNT_ID —— Cloudflare 账户 ID
+# 注意：本仓库不提交 package-lock.json（.gitignore），因此用 npm install 而非 npm ci。
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build & Verify
+        run: npm run check
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy
