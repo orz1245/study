@@ -131,9 +131,6 @@ main.article { padding-bottom: 8px }
 /* 「课后练习」前的三点隔断（lessonGap 构建期插入）：替代被禁的横向分隔线 */
 .sec-gap { margin: 46px 0 0; text-align: center; color: var(--ink-3); font-size: 12px; letter-spacing: .5em; user-select: none }
 .sec-gap + h3 { margin-top: 10px }
-/* 课程封面页「阶段学习计划」区（2026-10-15：此前错挂 sec-gap 导致整区居中+12px 小字；
-   标题走 .article h2 默认样式，条目列表复用课后练习的 ex-ol 卡片样式）。 */
-.plan-sec { margin: 46px 0 0 }
 
 .qrow { padding: 18px 4px }
 .qrow a { display: block }

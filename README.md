@@ -41,7 +41,7 @@ study/
 │   │   └── question-slugs.js    # 题目 ID ↔ 语义化 URL Slug 映射（含 304 道题目）
 │   ├── ssg/                     # 模块化 SSG 渲染核心
 │   │   ├── pages/               # 分模块页面生成器
-│   │   │   ├── courses.js       # 课程总览页、课程封面页（含阶段学习计划与题库互链）及课时详情页生成
+│   │   │   ├── courses.js       # 课程总览页、课程封面页（含题库互链）及课时详情页生成
 │   │   │   ├── interview.js     # 题库总览页、分类聚合页（含配套课程互链）与题目详情页生成
 │   │   │   └── static-pages.js  # 首页、学习仪表盘、留言板、支持我们、404 页与搜索索引生成
 │   │   ├── html.js              # HTML 转义、Markdown 纯文本提取与课后练习样式注入
@@ -93,7 +93,7 @@ npm install
 - **真实源文件 `<lastmod>` 与双 Sitemap 入口**：基于各课程与题库分类源文件的真实修改时间为 `sitemap.xml` 中的 **558 条 URL** 生成差异化 `<lastmod>` 日期，并同步产出 `sitemap-index.xml`，配合 `public/_headers` 显式声明 `application/xml; charset=utf-8`，解决 Google Search Console 抓取与读取问题。
 - **环形轮转内链 + 课程与题库双向互链 + 全站死链拦截**：
   - 题目详情页底部的「同分类其他题目」通过 `pickRelatedQuestions` 采用**标签重合度优先 + 环形偏移轮转**策略，确保每个分类下的所有深层题目都能均匀获得内链权重。
-  - 课程封面页（`/course/<slug>/`）自动渲染配套题库分类入口与 `course.plan` 阶段学习计划；题库分类页（`/interview/<cat>/`）自动反向链接至对应的系统教程，形成站内双向权重闭环，并由 `verify-routes.mjs` 对全站 `href="/..."` 执行零死链断言。
+  - 课程封面页（`/course/<slug>/`）自动渲染配套题库分类入口；题库分类页（`/interview/<cat>/`）自动反向链接至对应的系统教程，形成站内双向权重闭环，并由 `verify-routes.mjs` 对全站 `href="/..."` 执行零死链断言。
 - **确定性代码高亮与 TypeScript 演练场支持**：
   - 全站教程与题库代码块均标注明确语言标签（`js`、`ts`、`html`、`css`、`bash`、`json`、`text`），`src/utils/markdown.js` 禁用不稳定的 `highlightAuto` 盲猜，未识别语言统一回退至确定性的 `plaintext`。
   - 浏览器端悬浮演练场 `public/islands/playground.js` 内置轻量级 `stripTsTypes()` 类型剥离器，自动擦除 `interface`、`type`、`as`、`satisfies` 与函数参数/返回值类型注解，支持直接粘贴运行 TypeScript 教程与面试题代码。
