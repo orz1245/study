@@ -45,14 +45,22 @@ nav.top .wrap { padding: 0 32px }
 .nav-links a:hover { color: var(--ink) }
 /* 当前栏目高亮：静态页按 active 参数直出 .on */
 .nav-links a.on { color: var(--ink); font-weight: 600 }
-.nav-right { margin-left: auto; display: flex; align-items: center }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px }
+.nav-gh {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 999px;
+  color: var(--ink-2); transition: color .15s ease, background-color .15s ease;
+}
+.nav-gh:hover { color: var(--accent); background: var(--paper-2) }
+.nav-gh svg { display: block }
 
 /* 全局搜索（方案A 的导航胶囊）：Enter 跳 /interview/?q=，Cmd/Ctrl+K 聚焦。
    行为在 public/islands/nav-search.js（全站每页都加载）。 */
 .nav-search {
-  flex: none; width: 210px; padding: 7px 16px;
+  flex: none; width: 200px; padding: 7px 16px;
   font-size: 13px; font-family: var(--sans); color: var(--ink);
   background: #fff; border: 1px solid var(--line); border-radius: 999px; outline: none;
+  transition: border-color .15s ease;
 }
 .nav-search::placeholder { color: var(--ink-3) }
 .nav-search:focus { border-color: var(--accent) }
@@ -60,31 +68,34 @@ nav.top .wrap { padding: 0 32px }
 /* sticky 导航高 64px：锚点跳转时标题要停在导航下方，而不是被它盖住 */
 h1, h2, h3 { scroll-margin-top: 80px }
 
-/* 页脚只剩一行版权（2026-10-07 定稿：不要栏目、不要简介）。
-   2026-10-15 用户要求：站名链回本站 + GitHub 仓库 SVG 图标链接。 */
+/* 页脚重新设计（2026-10-15）：通栏柔和浅投影，友情链接小位置 + 版权与声明行。 */
 .colophon {
-  /* 页脚通栏（2026-10-07 用户要求：宽度占满整个浏览器），投影随之全宽，
-     版权行居中；与页头一样是全宽元素。 */
-  padding: 20px 32px 40px;
-  font-size: 12.5px; color: var(--ink-3);
+  padding: 22px 32px 34px;
   text-align: center;
   box-shadow: 0 -1px 10px rgba(28, 25, 20, .07);
+  display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center;
 }
-.colophon a { color: var(--ink-2) }
-.colophon a:hover { color: var(--accent) }
-.cp-gh {
-  display: inline-flex; align-items: center;
-  margin-left: 10px; vertical-align: -2px;
+.colophon-links {
+  font-size: 12.5px; color: var(--ink-2);
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
 }
-.cp-gh svg { display: block }
-
-/* 页脚整块下线（2026-10-07，用户要求）：四栏链接 → 极简一行 → 一行版权。
-   别再加回 footer 里的任何链接/栏目元素。 */
+.colophon-links .lbl { color: var(--ink-3) }
+.colophon-links .sep, .colophon-copy .sep { color: var(--line); margin: 0 1px }
+.colophon-links a:hover, .colophon-copy a:hover { color: var(--accent) }
+.colophon-links .apply-fl { color: var(--accent); margin-left: 2px }
+.colophon-copy {
+  font-size: 12px; color: var(--ink-3);
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
+}
+.colophon-copy a { color: var(--ink-2) }
 
 @media (max-width: 680px) {
-  .nav-in { gap: 18px }
-  .nav-links { gap: 14px; font-size: 12.5px; overflow-x: auto }
+  .nav-in { gap: 14px }
+  .nav-links { gap: 12px; font-size: 12.5px; overflow-x: auto }
   .wrap { padding: 0 18px 40px }
   .nav-search { display: none }
-  .colophon { padding: 0 18px 28px }
+  .nav-gh { width: 28px; height: 28px }
+  .colophon { padding: 18px 16px 28px; gap: 6px }
+  .colophon-links { font-size: 12px; gap: 4px }
+  .colophon-copy { font-size: 11.5px; gap: 4px }
 }

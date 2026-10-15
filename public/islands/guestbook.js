@@ -141,6 +141,21 @@
       })
   })
 
+  // 友链申请快捷支持：若 URL 带 ?ref=friendlink，自动预填申请模版并聚焦
+  if (contentEl && typeof location !== 'undefined' && location.search && location.search.indexOf('ref=friendlink') !== -1) {
+    if (!contentEl.value) {
+      contentEl.value = '【申请友链】\n站点名称：\n站点地址：\n站点简介：'
+      if (countEl) countEl.textContent = contentEl.value.length + '/500'
+      setBusy(false)
+    }
+    setTimeout(function () {
+      if (form && typeof form.scrollIntoView === 'function') {
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      contentEl.focus()
+    }, 120)
+  }
+
   setBusy(false)
   load()
 })()

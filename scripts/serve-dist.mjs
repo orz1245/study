@@ -86,6 +86,44 @@ async function exists(p) {
 const server = createServer(async (req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0])
 
+  // 0) 本地预览开发环境 mock：留言板读写 API (/api/messages)
+  if (urlPath === '/api/messages') {
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
+      return res.end(JSON.stringify({
+        messages: [
+          {
+            id: 'demo-1',
+            name: '站长',
+            content: '欢迎各位博主与前端开发者在此申请友情链接，请留下您的网站名称、链接及一句话简介。',
+            createdAt: Date.now() - 3600000 * 24
+          }
+        ]
+      }))
+    }
+    if (req.method === 'POST') {
+      let bodyStr = ''
+      req.on('data', (chunk) => { bodyStr += chunk })
+      req.on('end', () => {
+        try {
+          const data = JSON.parse(bodyStr || '{}')
+          const newMsg = {
+            id: 'local-' + Date.now(),
+            name: data.name || '匿名访客',
+            content: data.content || '',
+            createdAt: Date.now()
+          }
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
+          res.end(JSON.stringify({ ok: true, message: newMsg }))
+        } catch {
+          res.writeHead(400, { 'content-type': 'application/json; charset=utf-8' })
+          res.end(JSON.stringify({ error: '无效请求数据' }))
+        }
+      })
+      return
+    }
+  }
+
   // 1) 先跑 _redirects（与 Pages 一致）
   const hit = applyRedirects(urlPath)
   if (hit && hit.status !== 200) {

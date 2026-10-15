@@ -140,8 +140,8 @@ main.article { padding-bottom: 8px }
 .qrow .tags span { font-size: 12px; color: var(--ink-3) }
 
 .footnav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 38px 0 12px }
-.footnav a { border: 1px solid var(--ink); border-radius: 10px; padding: 14px 18px }
-.footnav a:hover { background: var(--paper-2) }
+.footnav a { border: 1px solid var(--ink); border-radius: 10px; padding: 14px 18px; transition: background .15s ease, transform .15s ease }
+.footnav a:hover { background: var(--paper-2); transform: translateY(-1px) }
 .footnav .t { font-size: 13.5px; font-weight: 600; line-height: 1.5 }
 .footnav .dir { display: block; font-size: 12px; color: var(--ink-3); letter-spacing: .15em; margin-top: 6px }
 .footnav .next { text-align: right }
@@ -153,8 +153,8 @@ main.article { padding-bottom: 8px }
 .cta-line a:hover { filter: brightness(1.06) }
 
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 14px; margin: 18px 0 0 }
-.card-grid a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: #fff; color: inherit }
-.card-grid a:hover { border-color: var(--accent) }
+.card-grid a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: #fff; color: inherit; transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease }
+.card-grid a:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(28, 26, 23, 0.05) }
 .card-grid h3 { font-family: var(--serif); font-size: 16.5px; font-weight: 700; margin: 0 0 6px }
 .card-grid p { font-size: 13px; color: var(--ink-3); line-height: 1.7; margin: 0 0 10px }
 .card-grid .f { font-size: 12.5px; color: var(--accent) }
@@ -163,8 +163,9 @@ main.article { padding-bottom: 8px }
 .chips a {
   border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px;
   font-size: 13.5px; color: var(--ink-2); background: #fff;
+  transition: border-color .15s ease, color .15s ease, transform .15s ease;
 }
-.chips a:hover { border-color: var(--accent); color: var(--accent) }
+.chips a:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px) }
 
 /* ---------- 首页 ---------- */
 /* 标题上方的 kicker 栏目名已下线（2026-10-07）：面包屑与 h1 已经说明位置，
