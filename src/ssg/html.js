@@ -48,8 +48,8 @@ export function styleExercise(html) {
     /(<h([23])>课后练习<\/h\2>)([\s\S]*?)(?=<h[23]|\s*$)/,
     (m, head, lv, seg) => head + seg
       .replace(/<p><strong>(练习( \d+)?)<\/strong>：/g, '<p class="ex-q"><strong>$1</strong>：')
-      .replace(/<p>(<strong>答案<\/strong>：|答案：)/g, '<p class="ex-a">$1')
-      .replace(/<li>答案：/g, '<li class="ex-a">答案：')
+      .replace(/<p>(?:<strong>)?答案(?:<\/strong>)?：/g, '<p class="ex-a"><strong>答案</strong>：')
+      .replace(/<li>(?:<strong>)?答案(?:<\/strong>)?：/g, '<li class="ex-a"><strong>答案</strong>：')
       .replace(/<blockquote>\n<p class="ex-a">/g, '<blockquote class="ex-a">\n<p>')
       .replace(/<ol>\n<li>/g, '<ol class="ex-ol">\n<li>')
   )

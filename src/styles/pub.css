@@ -39,29 +39,43 @@ main.article { padding-bottom: 8px }
    竖线是 border-left，不在全站「禁横向分隔线」的拦截范围（那条只禁 top/bottom）。 */
 .article p.ex-q {
   background: var(--paper-2); border-radius: 8px;
-  padding: 12px 16px; margin: 0 0 10px; color: var(--ink);
+  padding: 13px 18px; margin: 0 0 10px; color: var(--ink); line-height: 1.75;
 }
 .article p.ex-q strong { color: var(--accent); font-weight: 700; margin-right: 4px }
-.article ol.ex-ol { list-style: none; padding-left: 0; counter-reset: ex; margin: 0 0 10px }
+.article ol.ex-ol { list-style: none; padding-left: 0; counter-reset: ex; margin: 0 0 14px }
 .article ol.ex-ol > li {
   counter-increment: ex; position: relative;
   background: var(--paper-2); border-radius: 8px;
-  padding: 12px 16px 12px 46px; margin: 0 0 12px; color: var(--ink);
+  padding: 13px 18px 14px 46px; margin: 0 0 14px; color: var(--ink); line-height: 1.75;
 }
 .article ol.ex-ol > li::before {
   content: counter(ex, decimal-leading-zero);
-  position: absolute; left: 16px; top: 13px;
+  position: absolute; left: 16px; top: 14px;
   font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--accent);
 }
 .article ol.ex-ol > li > ul { list-style: none; padding-left: 0; margin: 10px 0 0 }
-.article blockquote.ex-a, .article p.ex-a, .article li.ex-a { border-left: 3px solid var(--accent) }
-.article blockquote.ex-a { background: none; border-radius: 0; padding: 2px 0 2px 16px; margin: 0 0 22px }
-.article li.ex-a {
-  background: #fff; border-radius: 0 8px 8px 0; padding: 10px 14px;
-  margin: 0; color: var(--ink-2); font-size: 14px;
+.article blockquote.ex-a, .article p.ex-a, .article li.ex-a {
+  border-left: 3px solid var(--accent);
+  background: #fff;
+  border-radius: 0 8px 8px 0;
+  color: var(--ink-2);
+  line-height: 1.8;
 }
-.article blockquote.ex-a p, .article p.ex-a { margin: 0; color: var(--ink-2) }
-.article p.ex-a strong, .article li.ex-a strong, .article blockquote.ex-a strong { color: var(--accent) }
+.article blockquote.ex-a, .article p.ex-a {
+  padding: 12px 18px;
+  margin: 0 0 22px;
+  font-size: 14.5px;
+}
+.article li.ex-a {
+  padding: 10px 14px;
+  margin: 0;
+  font-size: 14px;
+}
+.article blockquote.ex-a p { margin: 0; color: var(--ink-2); line-height: 1.8 }
+.article blockquote.ex-a p + p { margin-top: 8px }
+.article p.ex-a strong, .article li.ex-a strong, .article blockquote.ex-a strong {
+  color: var(--accent); font-weight: 700; margin-right: 4px;
+}
 .article code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); border-radius: 4px; padding: 1px 6px }
 .article pre {
   background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
@@ -117,6 +131,9 @@ main.article { padding-bottom: 8px }
 /* 「课后练习」前的三点隔断（lessonGap 构建期插入）：替代被禁的横向分隔线 */
 .sec-gap { margin: 46px 0 0; text-align: center; color: var(--ink-3); font-size: 12px; letter-spacing: .5em; user-select: none }
 .sec-gap + h3 { margin-top: 10px }
+/* 课程封面页「阶段学习计划」区（2026-10-15：此前错挂 sec-gap 导致整区居中+12px 小字；
+   标题走 .article h2 默认样式，条目列表复用课后练习的 ex-ol 卡片样式）。 */
+.plan-sec { margin: 46px 0 0 }
 
 .qrow { padding: 18px 4px }
 .qrow a { display: block }

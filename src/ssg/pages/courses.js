@@ -44,7 +44,7 @@ export function buildCoursePages({ writePage, pageShell, getCourseLastmod, lates
       ? `<p class="page-sub" style="margin-top:-6px"><a href="${categoryUrl(matchedCat.key)}" style="color:var(--accent);text-decoration:none;font-weight:500">配套题库：前往巩固 ${esc(matchedCat.name)} 高频面试真题 &rarr;</a></p>\n`
       : ''
     const planHtml = Array.isArray(course.plan) && course.plan.length
-      ? `<section class="sec-gap"><h2 class="sec-title">阶段学习计划（${course.plan.length} 步）</h2><ol class="ex-ol">${course.plan.map(p => `<li><strong>Day ${esc(String(p.day || ''))} · ${esc(p.title || '')}</strong>：${esc(p.goal || p.tasks || '')}</li>`).join('')}</ol></section>\n`
+      ? `<section class="plan-sec"><h2 class="sec-title">阶段学习计划（${course.plan.length} 步）</h2><ol class="ex-ol">${course.plan.map(p => `<li><strong>Day ${esc(String(p.day || ''))} · ${esc(p.title || '')}</strong>：${esc(p.goal || p.tasks || '')}</li>`).join('')}</ol></section>\n`
       : ''
     const landBody = `<h1 class="page">${esc(meta.title)}<span class="n">（${ordered.length} 节课）</span></h1>
 <p class="page-sub">${esc(meta.subtitle || '')}</p>
