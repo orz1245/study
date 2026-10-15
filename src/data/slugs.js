@@ -15,6 +15,7 @@ export const COURSE_SLUGS = {
   webpack: 'webpack',
   vite: 'vite',
   microfe: 'micro-frontend',
+  agent: 'js-agent',
 }
 
 // 反查：slug → 课程 id

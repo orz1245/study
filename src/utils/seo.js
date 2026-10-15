@@ -170,9 +170,9 @@ export function homeSeo() {
 export function courseIndexSeo() {
   return {
     title: `全部课程 - ${TOTAL_COURSES} 门前端系统课程 | ${SITE_NAME}`,
-    description: `这里收录了 ${TOTAL_COURSES} 门前端系统课程，共 ${TOTAL_LESSONS} 节：浏览器渲染原理、手写一门编程语言、富文本编辑器、TypeScript 类型系统、JS 逆向、AST、数据结构与算法、Webpack、Vite、Monorepo 与微前端等，都是能跟着敲下来的实战内容。`,
+    description: `这里收录了 ${TOTAL_COURSES} 门前端系统课程，共 ${TOTAL_LESSONS} 节：JavaScript 开发 AI Agent、浏览器渲染原理、手写一门编程语言、富文本编辑器、TypeScript 类型系统、JS 逆向、AST、数据结构与算法、Webpack、Vite、Monorepo 与微前端等，都是能跟着敲下来的实战内容。`,
     keywords: mergeKeywords(
-      ['前端课程', '前端系统课程', '前端教程', '前端进阶', '前端学习路线'],
+      ['前端课程', '前端系统课程', 'AI Agent教程', 'JavaScript开发Agent', 'MCP协议', '前端教程', '前端进阶', '前端学习路线'],
       SITE_KEYWORDS,
       courses.map((c) => c.meta.title)
     ),

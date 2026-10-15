@@ -16,6 +16,7 @@ import { monorepoCourseMeta, monorepoLessons, monorepoPlan } from './courses/mon
 import { webpackCourseMeta, webpackLessons, webpackPlan } from './courses/webpack-course.js'
 import { viteCourseMeta, viteLessons, vitePlan } from './courses/vite-course.js'
 import { microfeCourseMeta, microfeLessons, microfePlan } from './courses/microfe-course.js'
+import { agentCourseMeta, agentLessons, agentPlan } from './courses/agent-course.js'
 
 export const courses = [
   { id: 'ts-course', meta: tsCourseMeta, lessons: tsLessons, plan: tsPlan, sourceFile: 'src/data/courses/ts-course.js' },
@@ -31,7 +32,8 @@ export const courses = [
   { id: 'monorepo', meta: monorepoCourseMeta, lessons: monorepoLessons, plan: monorepoPlan, sourceFile: 'src/data/courses/monorepo-course.js' },
   { id: 'webpack', meta: webpackCourseMeta, lessons: webpackLessons, plan: webpackPlan, sourceFile: 'src/data/courses/webpack-course.js' },
   { id: 'vite', meta: viteCourseMeta, lessons: viteLessons, plan: vitePlan, sourceFile: 'src/data/courses/vite-course.js' },
-  { id: 'microfe', meta: microfeCourseMeta, lessons: microfeLessons, plan: microfePlan, sourceFile: 'src/data/courses/microfe-course.js' }
+  { id: 'microfe', meta: microfeCourseMeta, lessons: microfeLessons, plan: microfePlan, sourceFile: 'src/data/courses/microfe-course.js' },
+  { id: 'agent', meta: agentCourseMeta, lessons: agentLessons, plan: agentPlan, sourceFile: 'src/data/courses/agent-course.js' }
 ]
 
 export function getCourse(id) {
