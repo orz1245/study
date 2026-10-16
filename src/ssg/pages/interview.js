@@ -161,8 +161,13 @@ ${questionListHtml(qs)}`
       const next = idx < qs.length - 1 ? { href: questionUrl(qs[idx + 1]), title: qs[idx + 1].question } : null
       const qSeo = questionSeo(q)
       const related = pickRelatedQuestions(qs, idx, 4)
+      const relCourse = courses.find((c) => c.meta && c.meta.practiceCategory === q.category)
+      const relCourseHtml = relCourse
+        ? `<div class="chap" style="margin:28px 0 14px"><span class="t">配套体系课程：</span><a href="${courseUrl(relCourse.id)}" style="color:var(--accent);text-decoration:none">${esc(relCourse.meta.title)}（${(relCourse.lessons || []).length} 节系统课时） &rarr;</a></div>`
+        : ''
       const body = `<h1 class="page">${esc(q.question)}</h1>
 ${renderMarkdown(q.answer)}
+${relCourseHtml}
 ${related.length ? `<h2>同分类其他题目</h2><div class="lesson-list">${related
       .map((r) => `<a href="${questionUrl(r)}"><span class="lid">›</span><span class="t">${esc(r.question)}</span></a>`)
       .join('')}</div>` : ''}

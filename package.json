@@ -6,8 +6,9 @@
   "scripts": {
     "build": "node scripts/ssg.mjs",
     "preview": "node scripts/serve-dist.mjs",
-    "verify": "node scripts/verify-routes.mjs && node scripts/test-islands.mjs",
-    "test": "node scripts/test-islands.mjs",
+    "audit": "node scripts/audit-content.mjs",
+    "verify": "node scripts/audit-content.mjs && node scripts/verify-routes.mjs && node scripts/test-islands.mjs",
+    "test": "node scripts/audit-content.mjs && node scripts/test-islands.mjs",
     "check": "npm run build && npm run verify"
   },
   "dependencies": {

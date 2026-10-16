@@ -13,14 +13,20 @@ import {
 } from '../../utils/seo.js'
 import { esc, firstSentence, lessonGap, styleExercise } from '../html.js'
 import { breadcrumbJsonLd, articleJsonLd, courseJsonLd, itemListJsonLd } from '../jsonld.js'
-import { categoryUrl } from '../../utils/urls.js'
-import { categories } from '../../data/index.js'
+import { categoryUrl, questionUrl } from '../../utils/urls.js'
+import { categories, allQuestions } from '../../data/index.js'
 import { crumbHtml, footNavHtml, playgroundHtml, PAGE_SCRIPTS } from '../layout.js'
 
 export function buildCoursePages({ writePage, pageShell, getCourseLastmod, latestCourseLastmod }) {
   const sitemapEntries = []
   const redirectLines = []
   let fileCount = 0
+
+  const byCategory = new Map()
+  for (const q of allQuestions) {
+    if (!byCategory.has(q.category)) byCategory.set(q.category, [])
+    byCategory.get(q.category).push(q)
+  }
 
   for (const course of courses) {
     const meta = course.meta
@@ -95,6 +101,23 @@ ${playgroundHtml({ refLabel: '当前课程', refText: meta.title })}`
       const prev = idx > 0 ? { href: lessonUrl(key, idx - 1), title: ordered[idx - 1].title } : null
       const next = idx < ordered.length - 1 ? { href: lessonUrl(key, idx + 1), title: ordered[idx + 1].title } : null
       const lessonMeta = lessonSeo(course, idx)
+      const matchedCat = categories.find((c) => c.key === meta.practiceCategory)
+      const matchedQuestions = matchedCat ? (byCategory.get(matchedCat.key) || []) : []
+      const practiceStart = matchedQuestions.length > 3 ? (idx * 2) % (matchedQuestions.length - 2) : 0
+      const practiceQs = matchedQuestions.slice(practiceStart, practiceStart + 3)
+      const practiceHtml = practiceQs.length
+        ? `<div class="chap" style="margin:36px 0 12px"><span class="t">配套真题自测：</span><a href="${categoryUrl(matchedCat.key)}" style="color:var(--accent);text-decoration:none">${esc(matchedCat.name)}高频考点 &rarr;</a></div><div class="lesson-list">${practiceQs
+            .map((q) => `<a href="${questionUrl(q)}"><span class="lid">›</span><span class="t">${esc(q.question)}</span></a>`)
+            .join('')}</div>`
+        : ''
+
+      const bodyHtml =
+        `<h1 class="page">${esc(lesson.title)}</h1>` +
+        lessonGap(styleExercise(renderMarkdown(lesson.content))) +
+        practiceHtml +
+        footNavHtml({ prev, next, up: '上一节', down: '下一节' }) +
+        playgroundHtml({ refLabel: '当前课时', refText: lesson.title })
+
       const html = pageShell({
         ...lessonMeta,
         canonical: url,
@@ -113,11 +136,7 @@ ${playgroundHtml({ refLabel: '当前课程', refText: meta.title })}`
           { name: '课程', url: '/course/' },
           { name: meta.title, url: landHref },
         ]),
-        bodyHtml:
-          `<h1 class="page">${esc(lesson.title)}</h1>` +
-          lessonGap(styleExercise(renderMarkdown(lesson.content))) +
-          footNavHtml({ prev, next, up: '上一节', down: '下一节' }) +
-          playgroundHtml({ refLabel: '当前课时', refText: lesson.title }),
+        bodyHtml,
         active: 'course',
         playground: true,
         scripts: PAGE_SCRIPTS,
