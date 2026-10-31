@@ -60,6 +60,7 @@ function matchRoute(path) {
   if (path === '/progress/') return { name: 'progress', params: {} }
   if (path === '/guestbook/') return { name: 'guestbook', params: {} }
   if (path === '/donate/') return { name: 'donate', params: {} }
+  if (path === '/links/') return { name: 'links', params: {} }
 
   let m = /^\/course\/([^/]+)\/l(\d+)\/$/.exec(path)
   if (m) return { name: 'course-lesson', params: { courseSlug: m[1], lessonNum: m[2] } }

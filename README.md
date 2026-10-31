@@ -29,7 +29,8 @@ study/
 ├── scripts/
 │   ├── ssg.mjs                  # 静态站点构建主入口（产出 dist/ 下全部页面、索引与 Sitemap）
 │   ├── serve-dist.mjs           # 本地静态产物预览服务器（默认端口 4173）
-│   ├── verify-routes.mjs        # 构建产物全量回归校验（559 页 × 5 项 SEO Head、DOM 挂点、死链、Sitemap、301）
+│   ├── audit-content.mjs        # 内容质量与 SEO 守卫巡检（题库、课程、双向内链、友链数据）
+│   ├── verify-routes.mjs        # 构建产物全量回归校验（560 页 × 5 项 SEO Head、DOM 挂点、死链、Sitemap、301）
 │   └── test-islands.mjs         # 原生 JS 小岛零依赖单元测试（共 63 项断言）
 ├── src/
 │   ├── data/                    # 课程与面试题库数据源
@@ -43,7 +44,7 @@ study/
 │   │   ├── pages/               # 分模块页面生成器
 │   │   │   ├── courses.js       # 课程总览页、课程封面页（含题库互链）及课时详情页生成
 │   │   │   ├── interview.js     # 题库总览页、分类聚合页（含配套课程互链）与题目详情页生成
-│   │   │   └── static-pages.js  # 首页、学习仪表盘、留言板、支持我们、404 页与搜索索引生成
+│   │   │   └── static-pages.js  # 首页、学习仪表盘、留言板、支持我们、友情链接、404 页与搜索索引生成
 │   │   ├── html.js              # HTML 转义、Markdown 纯文本提取与课后练习样式注入
 │   │   ├── jsonld.js            # Schema.org 结构化数据（WebSite / Course / Article / QAPage / ItemList / BreadcrumbList）
 │   │   ├── layout.js            # 全局页面外壳（PageShell / 导航栏 / 面包屑 / 演练场 / 内联样式安全校验）
@@ -60,6 +61,9 @@ study/
 │       ├── seo.js               # 全站各路由 Title / Description / Keywords / Canonical / Robots 单一真源
 │       └── urls.js              # 语义化 URL 正向构造与反向解析
 ├── CONTENT-REVIEW-REPORT.md     # 教程与面试题内容审查及优化落地报告
+├── docs/
+│   ├── links-outreach.md        # 友链与外链 outreach 执行手册（目标、方法、发送规则；未确认目标不进公开页）
+│   └── seo-and-content-playbook.md  # SEO 与内容规范（Keyword-to-Page、GEO、任务页、js-agent 下一版案例提案）
 ├── package.json
 └── wrangler.toml                # Cloudflare Pages 与 KV 命名空间配置
 ```
@@ -80,8 +84,8 @@ npm install
 
 | 命令                | 说明                                                                                                                                      |
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run build`   | 执行 `node scripts/ssg.mjs`，在 `dist/` 目录生成全站 **560 个静态文件**（含 559 个 HTML 页、`search-index.json`、`_redirects`、`sitemap.xml` 及 `sitemap-index.xml`） |
-| `npm run verify`  | 运行 `verify-routes.mjs`（校验 **559 页 × 5 字段 = 2,795 项** SEO Head、235 页课程与列表正文、524 页代码复制、539 页演练场、全站 0 死链与 536 条 301 规则）及 `test-islands.mjs`（**63 项**小岛交互单测） |
+| `npm run build`   | 执行 `node scripts/ssg.mjs`，在 `dist/` 目录生成全站 **561 个静态文件**（含 560 个 HTML 页、`search-index.json`、`_redirects`、`sitemap.xml` 及 `sitemap-index.xml`） |
+| `npm run verify`  | 运行 `verify-routes.mjs`（校验 **560 页 × 5 字段 = 2,800 项** SEO Head、235 页课程与列表正文、524 页代码复制、539 页演练场、全站 0 死链与 536 条 301 规则）及 `test-islands.mjs`（**63 项**小岛交互单测） |
 | `npm run test`    | 单独运行 `node scripts/test-islands.mjs` 原生小岛单元测试（题库 15 项 / 仪表盘 5 项 / 留言板 10 项 / 复制按钮 10 项 / 演练场 23 项）                               |
 | `npm run check`   | 一键串联执行 `npm run build && npm run verify`（发布前必跑校验）                                                                                       |
 | `npm run preview` | 启动本地静态服务器预览 `dist/` 构建产物（默认访问 `http://127.0.0.1:4173`）                                                                                  |
@@ -90,7 +94,7 @@ npm install
 
 - **全量预渲染与按需内联样式**：构建期将 `src/styles/` 下的基础样式直接内联至 HTML `<head>`，消除外部 CSS 阻塞渲染；`islands.css` 与 `playground.css` 仅在用到的页面按需内联，并通过 `assertInlineSafe` 拦截任何可能提前闭合 `<style>` 的标签字面量。
 - **单一 SEO 元数据真源与 `ItemList` 结构化数据**：全站所有页面的 `title`、`description`、`keywords`、`canonical` 与 `robots` 均由 `src/utils/seo.js` 统一计算；除详情页的 `Course`、`Article`、`QAPage`、`BreadcrumbList` 外，还在 `/course/`、`/interview/` 与 14 个分类聚合页注入 `ItemList` Schema.org JSON-LD，提升搜索引擎列表富结果展现与子页面发现速度。
-- **真实源文件 `<lastmod>` 与双 Sitemap 入口**：基于各课程与题库分类源文件的真实修改时间为 `sitemap.xml` 中的 **558 条 URL** 生成差异化 `<lastmod>` 日期，并同步产出 `sitemap-index.xml`，配合 `public/_headers` 显式声明 `application/xml; charset=utf-8`，解决 Google Search Console 抓取与读取问题。
+- **真实源文件 `<lastmod>` 与双 Sitemap 入口**：基于各课程与题库分类源文件的真实修改时间为 `sitemap.xml` 中的 **559 条 URL** 生成差异化 `<lastmod>` 日期，并同步产出 `sitemap-index.xml`，配合 `public/_headers` 显式声明 `application/xml; charset=utf-8`，解决 Google Search Console 抓取与读取问题。
 - **环形轮转内链 + 课程与题库双向互链 + 全站死链拦截**：
   - 题目详情页底部的「同分类其他题目」通过 `pickRelatedQuestions` 采用**标签重合度优先 + 环形偏移轮转**策略，确保每个分类下的所有深层题目都能均匀获得内链权重。
   - 课程封面页（`/course/<slug>/`）自动渲染配套题库分类入口；题库分类页（`/interview/<cat>/`）自动反向链接至对应的系统教程，形成站内双向权重闭环，并由 `verify-routes.mjs` 对全站 `href="/..."` 执行零死链断言。
@@ -110,7 +114,7 @@ npm install
 
 项目部署于 **Cloudflare Pages**（项目名：`study`，输出目录：`dist`）：
 
-1. **构建与校验**：部署前先在本地执行 `npm run check`，确认全量 560 个静态文件与 63 项小岛单元测试全部通过。
+1. **构建与校验**：部署前先在本地执行 `npm run check`，确认全量 561 个静态文件与 63 项小岛单元测试全部通过。
 2. **KV 绑定**：留言板接口 `functions/api/messages.js` 依赖 Cloudflare KV 命名空间绑定 `GUESTBOOK`（配置见 `wrangler.toml`）。
 3. **发布命令**：
    ```bash

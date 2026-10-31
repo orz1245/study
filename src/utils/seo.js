@@ -292,6 +292,14 @@ export function guestbookSeo() {
   }
 }
 
+export function linksSeo() {
+  return {
+    title: `友情链接 - ${SITE_NAME}`,
+    description: '前端学习网的友情链接：只收录已确认互换链接的前端与开发者生态站点，包括 MDN、Vue、React、TypeScript、Vite 等权威参考与优质博客。申请友链前请先在贵站添加本站链接，并通过留言板附上站点名称、地址与简介，站长会人工审核。',
+    keywords: ['前端学习网友情链接', '前端博客友链', '前端资源导航', 'MDN', 'Vue', 'React', 'TypeScript', 'Vite'],
+  }
+}
+
 export function donateSeo() {
   return {
     title: `支持我们 - ${SITE_NAME}`,
@@ -326,6 +334,7 @@ export function seoForRoute(route) {
   if (name === 'progress') return progressSeo()
   if (name === 'guestbook') return guestbookSeo()
   if (name === 'donate') return donateSeo()
+  if (name === 'links') return linksSeo()
 
   if (name === 'course' || name === 'course-lesson') {
     const slug = params.courseSlug || params.courseKey || ''

@@ -61,7 +61,7 @@ ${allLines.join('\n')}
 
 export function writeSitemaps(distDir, entries, siteLastmod) {
   // 保持 BASE 入口排在最前，同时去重并保留每个 URL 的真实 <lastmod>
-  const baseOrder = ['/', '/course/', '/interview/', '/guestbook/', '/donate/']
+  const baseOrder = ['/', '/course/', '/interview/', '/guestbook/', '/donate/', '/links/']
   const byLoc = new Map()
   for (const b of baseOrder) byLoc.set(b, siteLastmod)
   for (const item of entries) {

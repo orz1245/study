@@ -1,14 +1,16 @@
-// 静态基础页生成：首页（/）、学习仪表盘（/progress/）、留言板（/guestbook/）、支持我们（/donate/）、404 页与搜索索引
+// 静态基础页生成：首页（/）、学习仪表盘（/progress/）、留言板（/guestbook/）、支持我们（/donate/）、友情链接（/links/）、404 页与搜索索引
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { courses } from '../../data/courses.js'
 import { allQuestions, categories, modules } from '../../data/index.js'
+import { friendLinks } from '../../data/friend-links.js'
 import { courseUrl, categoryUrl } from '../../utils/urls.js'
 import {
   homeSeo,
   progressSeo,
   guestbookSeo,
   donateSeo,
+  linksSeo,
   notFoundSeo,
   categorySeoName,
   robotsOf,
@@ -166,6 +168,34 @@ ${[...byCategory.keys()]
   }), 'utf-8')
   fileCount++
   sitemapEntries.push({ loc: '/', lastmod: siteLastmod })
+
+  // —— 友情链接（/links/）——
+  // 2026-10-31 之前本站没有独立友链页，友链只在页脚渲染，交换申请没有可提交的落点页。
+  // 本页与页脚读同一份 src/data/friend-links.js，未确认的交换目标不写进来（见 docs/links-outreach.md）。
+  const linksMeta = linksSeo()
+  writePage('links', pageShell({
+    ...linksMeta,
+    canonical: canonicalFor('/links/'),
+    robots: robotsOf(linksMeta),
+    jsonLd: [
+      breadcrumbJsonLd([{ name: '首页', url: '/' }, { name: '友情链接' }]),
+      articleJsonLd({ title: '友情链接', canonical: canonicalFor('/links/'), section: '友情链接', dateModified: siteLastmod }),
+    ],
+    bodyHtml: `<h1 class="page">友情链接</h1>
+<p class="page-sub">这里只收录已确认互换链接的前端与开发者生态站点。申请友链前请先在贵站添加本站链接（前端学习网，https://study.791860.xyz/），然后通过留言板附上站点名称、地址与简介，站长会人工审核，审核通过后才会出现在这里。</p>
+<div class="card-grid">
+${friendLinks
+    .map(
+      (fl) =>
+        `<a href="${fl.url}" target="_blank" rel="noopener"><h3>${esc(fl.name)}</h3><p>${esc(fl.title || fl.name)}</p></a>`
+    )
+    .join('\n')}
+</div>
+<p class="cta-line"><a href="/guestbook/?ref=friendlink">申请友链 →</a></p>`,
+    active: 'links',
+  }))
+  fileCount++
+  sitemapEntries.push({ loc: '/links/', lastmod: siteLastmod })
 
   // —— 404.html ——
   const nfMeta = notFoundSeo()

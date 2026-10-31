@@ -27,7 +27,7 @@ mkdirSync(DIST, { recursive: true })
 for (const name of readdirSync(PUBLIC)) {
   cpSync(join(PUBLIC, name), join(DIST, name), { recursive: true })
 }
-for (const dir of ['course', 'interview', 'progress', 'guestbook', 'donate', 'assets']) {
+for (const dir of ['course', 'interview', 'progress', 'guestbook', 'donate', 'links', 'assets']) {
   rmSync(join(DIST, dir), { recursive: true, force: true })
 }
 rmSync(join(DIST, 'sitemap.xml'), { force: true })

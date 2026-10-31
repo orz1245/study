@@ -1,7 +1,7 @@
 {
   "name": "frontend-learning-net",
   "version": "1.0.0",
-  "description": "前端学习网 - 前端面试题库（289 题）与系统课程（14 门），纯静态站 + 原生 JS 小岛",
+  "description": "前端学习网 - 前端面试题库（304 题）与系统课程（15 门），纯静态站 + 原生 JS 小岛",
   "type": "module",
   "scripts": {
     "build": "node scripts/ssg.mjs",

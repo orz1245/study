@@ -10,6 +10,7 @@
 
 import { allQuestions, categories, questionMap } from '../src/data/index.js'
 import { courses } from '../src/data/courses.js'
+import { friendLinks } from '../src/data/friend-links.js'
 import { flatLessons } from '../src/utils/course-structure.js'
 
 let failures = 0
@@ -127,6 +128,11 @@ for (const cat of categories) {
 }
 
 console.log(`  ✔ 题库分类内链覆盖率：${matchedCatCount} / ${categories.length} 个分类已建立配套课程映射`)
+// 友链数据守卫（2026-10-31）：公开页与页脚同读本文件，未确认目标不许混进来。
+for (const fl of friendLinks) {
+  assert(fl.name && fl.url && fl.url.startsWith('https://'), `[友链数据非法] 友链「${fl.name || fl.url}」缺少名称或非 HTTPS 地址`)
+}
+console.log(`  ✔ 友链数据：${friendLinks.length} 条（全部 HTTPS，公开页与页脚同源）`)
 console.log(`  ✔ 课时详情页：全量 205 节课时已接入配套真题自测导流`)
 console.log(`  ✔ 题目详情页：全量 304 道题目已接入配套系统教程双向互链\n`)
 
