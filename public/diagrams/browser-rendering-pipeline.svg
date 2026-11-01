@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .card-bg { fill: #FFFFFF; stroke: #E7E5E0; stroke-width: 1.5; rx: 10px; }
+      .stage-card { fill: #FFFFFF; stroke: #D8D5CD; stroke-width: 1.5; rx: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .highlight-card { fill: #FDFBF7; stroke: #B4530A; stroke-width: 1.5; rx: 8px; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .text-stage-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 13.5px; font-weight: 700; fill: #1C1A17; }
+      .text-stage-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 11px; fill: #78716C; }
+      .text-chip { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11px; font-weight: 600; }
+      .text-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 11.5px; fill: #44403C; line-height: 1.5; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .thread-tag { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 10.5px; font-weight: 600; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arrowhead-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+    <filter id="soft-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.04" />
+    </filter>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 28)">
+    <rect x="0" y="0" width="128" height="22" rx="4" fill="#F6E8DC" />
+    <text x="64" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">Blink 渲染引擎管线</text>
+    <text x="0" y="44" class="text-title">浏览器关键渲染流水线（Critical Rendering Pipeline）</text>
+    <text x="0" y="64" class="text-sub">从 DOM / CSSOM 构建到 GPU 像素光栅化的全链路时序与性能分级</text>
+  </g>
+
+  <!-- Thread Lanes Legend -->
+  <g transform="translate(620, 32)">
+    <rect x="0" y="0" width="228" height="42" rx="6" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1" />
+    <circle cx="16" cy="21" r="5" fill="#2563EB" />
+    <text x="28" y="25" class="thread-tag" fill="#1E40AF">主线程 (Main)</text>
+    <circle cx="120" cy="21" r="5" fill="#059669" />
+    <text x="132" y="25" class="thread-tag" fill="#065F46">合成/GPU 线程</text>
+  </g>
+
+  <!-- Pipeline Main Flow (6 sequential stages) -->
+  <g transform="translate(32, 115)">
+    <!-- Main Thread Bracket Area -->
+    <rect x="0" y="0" width="536" height="150" rx="8" fill="#F8FAFC" stroke="#DBEAFE" stroke-width="1.5" stroke-dasharray="4 3" />
+    <text x="14" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#1D4ED8">主线程负责阶段 (CPU 密集 · JS 与渲染互斥)</text>
+
+    <!-- GPU / Compositor Bracket Area -->
+    <rect x="550" y="0" width="266" height="150" rx="8" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.5" stroke-dasharray="4 3" />
+    <text x="564" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#15803D">合成与光栅线程 (硬件加速 · 独立运行)</text>
+
+    <!-- Stage 1: DOM + CSSOM -->
+    <g transform="translate(14, 34)">
+      <rect width="112" height="98" class="stage-card" />
+      <rect x="0" y="0" width="112" height="4" fill="#2563EB" rx="2" />
+      <text x="56" y="24" text-anchor="middle" class="text-stage-title">1. 解析构建</text>
+      <text x="56" y="42" text-anchor="middle" class="text-stage-sub">HTML / CSS 字节流</text>
+      <rect x="12" y="52" width="88" height="18" rx="3" fill="#EFF6FF" />
+      <text x="56" y="65" text-anchor="middle" class="text-chip" fill="#1E40AF">DOM 树</text>
+      <rect x="12" y="73" width="88" height="18" rx="3" fill="#EFF6FF" />
+      <text x="56" y="86" text-anchor="middle" class="text-chip" fill="#1E40AF">CSSOM 树</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <path d="M 130 83 L 144 83" class="arrow" marker-end="url(#arrowhead)" />
+
+    <!-- Stage 2: Style Recalc -->
+    <g transform="translate(148, 34)">
+      <rect width="112" height="98" class="stage-card" />
+      <rect x="0" y="0" width="112" height="4" fill="#2563EB" rx="2" />
+      <text x="56" y="24" text-anchor="middle" class="text-stage-title">2. 样式计算</text>
+      <text x="56" y="42" text-anchor="middle" class="text-stage-sub">Recalc Style</text>
+      <text x="56" y="65" text-anchor="middle" class="text-body">选择器匹配</text>
+      <text x="56" y="83" text-anchor="middle" class="text-body">层叠与继承计算</text>
+      <text x="56" y="96" text-anchor="middle" class="text-chip" fill="#2563EB">ComputedStyle</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <path d="M 264 83 L 278 83" class="arrow" marker-end="url(#arrowhead)" />
+
+    <!-- Stage 3: Layout -->
+    <g transform="translate(282, 34)">
+      <rect width="112" height="98" class="stage-card" />
+      <rect x="0" y="0" width="112" height="4" fill="#B4530A" rx="2" />
+      <text x="56" y="24" text-anchor="middle" class="text-stage-title">3. 布局计算</text>
+      <text x="56" y="42" text-anchor="middle" class="text-stage-sub">Layout / Reflow</text>
+      <text x="56" y="65" text-anchor="middle" class="text-body">盒模型几何信息</text>
+      <text x="56" y="83" text-anchor="middle" class="text-body">绝对坐标与边界</text>
+      <text x="56" y="96" text-anchor="middle" class="text-chip" fill="#B4530A">LayoutObject</text>
+    </g>
+
+    <!-- Arrow 3 -> 4 -->
+    <path d="M 398 83 L 412 83" class="arrow" marker-end="url(#arrowhead)" />
+
+    <!-- Stage 4: Pre-Paint & Paint -->
+    <g transform="translate(416, 34)">
+      <rect width="112" height="98" class="stage-card" />
+      <rect x="0" y="0" width="112" height="4" fill="#7C3AED" rx="2" />
+      <text x="56" y="24" text-anchor="middle" class="text-stage-title">4. 绘制拆分</text>
+      <text x="56" y="42" text-anchor="middle" class="text-stage-sub">Paint &amp; Trees</text>
+      <text x="56" y="65" text-anchor="middle" class="text-body">属性树构建</text>
+      <text x="56" y="83" text-anchor="middle" class="text-body">生成绘制指令集</text>
+      <text x="56" y="96" text-anchor="middle" class="text-chip" fill="#7C3AED">DisplayItemList</text>
+    </g>
+
+    <!-- Arrow 4 -> 5 -->
+    <path d="M 532 83 L 558 83" class="arrow" stroke="#059669" stroke-width="2.2" marker-end="url(#arrowhead-accent)" />
+
+    <!-- Stage 5: Composite -->
+    <g transform="translate(564, 34)">
+      <rect width="112" height="98" class="stage-card" />
+      <rect x="0" y="0" width="112" height="4" fill="#059669" rx="2" />
+      <text x="56" y="24" text-anchor="middle" class="text-stage-title">5. 图层合成</text>
+      <text x="56" y="42" text-anchor="middle" class="text-stage-sub">Compositor Thread</text>
+      <text x="56" y="65" text-anchor="middle" class="text-body">图层提升分片</text>
+      <text x="56" y="83" text-anchor="middle" class="text-body">视口分块 (Tiles)</text>
+      <text x="56" y="96" text-anchor="middle" class="text-chip" fill="#059669">PaintLayers</text>
+    </g>
+
+    <!-- Arrow 5 -> 6 -->
+    <path d="M 680 83 L 694 83" class="arrow" marker-end="url(#arrowhead)" />
+
+    <!-- Stage 6: Raster & GPU -->
+    <g transform="translate(698, 34)">
+      <rect width="110" height="98" class="stage-card" />
+      <rect x="0" y="0" width="110" height="4" fill="#059669" rx="2" />
+      <text x="55" y="24" text-anchor="middle" class="text-stage-title">6. 光栅与上屏</text>
+      <text x="55" y="42" text-anchor="middle" class="text-stage-sub">Raster &amp; GPU</text>
+      <text x="55" y="65" text-anchor="middle" class="text-body">转换为位图纹理</text>
+      <text x="55" y="83" text-anchor="middle" class="text-body">写入显存 VRAM</text>
+      <text x="55" y="96" text-anchor="middle" class="text-chip" fill="#059669">VSync 刷新</text>
+    </g>
+  </g>
+
+  <!-- Performance Comparison Section: Layout vs Paint vs Composite -->
+  <g transform="translate(32, 285)">
+    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#1C1A17">不同 CSS 属性对渲染流水线的更新开销对比</text>
+
+    <!-- Card 1: Layout Trigger -->
+    <g transform="translate(0, 30)">
+      <rect width="258" height="195" rx="8" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.5" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#EA580C" />
+      <text x="52" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">触发布局 (重排)</text>
+      <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#9A3412">Reflow / Layout（开销最高）</text>
+      <text x="14" y="74" class="text-body" fill="#7C2D12">几何尺寸或位置改变，必须重新计算布局并触发后续整条管线：</text>
+      
+      <!-- Flow Diagram in Card -->
+      <g transform="translate(14, 90)">
+        <rect width="230" height="24" rx="4" fill="#FFEDD5" />
+        <text x="115" y="16" text-anchor="middle" class="text-chip" fill="#9A3412">Style → Layout → Paint → Composite</text>
+      </g>
+      
+      <text x="14" y="136" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="600" fill="#9A3412">常见触发属性：</text>
+      <text x="14" y="154" class="text-chip" fill="#C2410C">width · height · margin · padding</text>
+      <text x="14" y="172" class="text-chip" fill="#C2410C">top · left · display · font-size</text>
+    </g>
+
+    <!-- Card 2: Paint Trigger -->
+    <g transform="translate(278, 30)">
+      <rect width="258" height="195" rx="8" fill="#FAF5FF" stroke="#D8B4FE" stroke-width="1.5" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#9333EA" />
+      <text x="52" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">触发绘制 (重绘)</text>
+      <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#6B21A8">Repaint / Paint（开销中等）</text>
+      <text x="14" y="74" class="text-body" fill="#581C87">仅外观视觉改变、几何位置不变，跳过布局步骤直接重新绘制：</text>
+      
+      <!-- Flow Diagram in Card -->
+      <g transform="translate(14, 90)">
+        <rect width="230" height="24" rx="4" fill="#F3E8FF" />
+        <text x="115" y="16" text-anchor="middle" class="text-chip" fill="#6B21A8">Style → Paint → Composite</text>
+      </g>
+      
+      <text x="14" y="136" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="600" fill="#6B21A8">常见触发属性：</text>
+      <text x="14" y="154" class="text-chip" fill="#7E22CE">color · background-color · visibility</text>
+      <text x="14" y="172" class="text-chip" fill="#7E22CE">border-radius · box-shadow</text>
+    </g>
+
+    <!-- Card 3: Composite Only -->
+    <g transform="translate(558, 30)">
+      <rect width="258" height="195" rx="8" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#16A34A" />
+      <text x="52" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">仅触发合成</text>
+      <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#166534">Composite Only（极限丝滑 60fps）</text>
+      <text x="14" y="74" class="text-body" fill="#14532D">主线程完全不阻塞！直接由合成线程与 GPU 显存硬件加速位移：</text>
+      
+      <!-- Flow Diagram in Card -->
+      <g transform="translate(14, 90)">
+        <rect width="230" height="24" rx="4" fill="#DCFCE7" />
+        <text x="115" y="16" text-anchor="middle" class="text-chip" fill="#166534">Composite (硬件加速)</text>
+      </g>
+      
+      <text x="14" y="136" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="600" fill="#166534">极致性能黄金属性：</text>
+      <text x="14" y="154" class="text-chip" fill="#15803D">transform: translate / scale / rotate</text>
+      <text x="14" y="172" class="text-chip" fill="#15803D">opacity · will-change: transform</text>
+    </g>
+  </g>
+</svg>

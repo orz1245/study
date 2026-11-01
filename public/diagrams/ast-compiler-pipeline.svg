@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11.5px; }
+      .pipe-card { rx: 10px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .step-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700; }
+      .sub-box { rx: 6px; stroke-width: 1; }
+      .arrow { stroke: #A8A29E; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    </style>
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="500" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="498" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="138" height="22" rx="4" fill="#F6E8DC" />
+    <text x="69" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">Babel / 编译器内核</text>
+    <text x="0" y="44" class="text-title">前端编译器经典三步流水线（Compiler Pipeline）</text>
+    <text x="0" y="64" class="text-sub">Parse（词法/语法解析） ──► Transform（遍历与 AST 变换） ──► Generate（代码生成与 Source Map）</text>
+  </g>
+
+  <!-- Three Columns Pipeline -->
+  <g transform="translate(32, 105)">
+    <!-- Stage 1: Parse -->
+    <g transform="translate(0, 0)">
+      <rect width="255" height="240" class="pipe-card" fill="#FFFFFF" stroke="#93C5FD" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#2563EB" />
+      <text x="52" y="28" text-anchor="middle" class="step-tag" fill="#FFFFFF">第一阶段</text>
+      <text x="14" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" fill="#1E40AF">1. Parse 解析</text>
+      <text x="14" y="74" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E">将文本字符流转为结构化 AST：</text>
+
+      <!-- Sub step 1 -->
+      <g transform="translate(14, 88)">
+        <rect width="227" height="46" class="sub-box" fill="#EFF6FF" stroke="#BFDBFE" />
+        <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#1D4ED8">① 词法分析 (Lexer / Tokenizer)</text>
+        <text x="12" y="36" class="code-font" fill="#3B82F6">源码 ──► Tokens 扁平序列流</text>
+      </g>
+
+      <!-- Sub step 2 -->
+      <g transform="translate(14, 144)">
+        <rect width="227" height="46" class="sub-box" fill="#EFF6FF" stroke="#BFDBFE" />
+        <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#1D4ED8">② 语法分析 (Syntactic Parser)</text>
+        <text x="12" y="36" class="code-font" fill="#3B82F6">Tokens ──► 初始 AST 语法树</text>
+      </g>
+
+      <text x="14" y="214" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#2563EB">工具：@babel/parser, Acorn</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <path d="M 265 120 L 285 120" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Stage 2: Transform -->
+    <g transform="translate(295, 0)">
+      <rect width="255" height="240" class="pipe-card" fill="#FFFFFF" stroke="#FDBA74" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#EA580C" />
+      <text x="52" y="28" text-anchor="middle" class="step-tag" fill="#FFFFFF">第二阶段</text>
+      <text x="14" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" fill="#9A3412">2. Transform 变换</text>
+      <text x="14" y="74" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E">遍历语法树并实施节点的增删改：</text>
+
+      <!-- Sub step 1 -->
+      <g transform="translate(14, 88)">
+        <rect width="227" height="46" class="sub-box" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#C2410C">① 访问者模式 (Visitor Pattern)</text>
+        <text x="12" y="36" class="code-font" fill="#EA580C">traverse(ast, { enter, exit })</text>
+      </g>
+
+      <!-- Sub step 2 -->
+      <g transform="translate(14, 144)">
+        <rect width="227" height="46" class="sub-box" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#C2410C">② 插件生态 (Plugins / Scope)</text>
+        <text x="12" y="36" class="code-font" fill="#EA580C">语法降级 / Polyfill / 宏扩展</text>
+      </g>
+
+      <text x="14" y="214" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#EA580C">工具：@babel/traverse, tsc</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <path d="M 560 120 L 580 120" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Stage 3: Generate -->
+    <g transform="translate(590, 0)">
+      <rect width="226" height="240" class="pipe-card" fill="#FFFFFF" stroke="#86EFAC" />
+      <rect x="14" y="14" width="76" height="20" rx="4" fill="#16A34A" />
+      <text x="52" y="28" text-anchor="middle" class="step-tag" fill="#FFFFFF">第三阶段</text>
+      <text x="14" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" fill="#166534">3. Generate 生成</text>
+      <text x="14" y="74" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E">把目标 AST 重新打印为源码：</text>
+
+      <!-- Sub step 1 -->
+      <g transform="translate(14, 88)">
+        <rect width="198" height="46" class="sub-box" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="10" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#15803D">① 深度优先代码拼接</text>
+        <text x="10" y="36" class="code-font" fill="#16A34A">AST ──► 格式化目标代码</text>
+      </g>
+
+      <!-- Sub step 2 -->
+      <g transform="translate(14, 144)">
+        <rect width="198" height="46" class="sub-box" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="10" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#15803D">② 生成 Source Map</text>
+        <text x="10" y="36" class="code-font" fill="#16A34A">建立新旧行列映射 (.map)</text>
+      </g>
+
+      <text x="14" y="214" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#16A34A">工具：@babel/generator</text>
+    </g>
+  </g>
+
+  <!-- Bottom Ecosystem Architecture Mapping -->
+  <g transform="translate(32, 365)">
+    <rect width="816" height="110" rx="8" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1.5" />
+    <text x="18" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#1C1A17">现代前端工具链在三步流水线中的定位分工：</text>
+
+    <g transform="translate(18, 36)">
+      <!-- Tool 1: Babel -->
+      <rect width="250" height="58" rx="6" fill="#FFFFFF" stroke="#E7E5E0" />
+      <text x="12" y="20" class="code-font" font-weight="700" fill="#B4530A">Babel (转译器)</text>
+      <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#57534E">走完全部三步：JSX / ESNext 语法转译</text>
+      <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78716C">产物：浏览器兼容的低版本 ES5 代码</text>
+
+      <!-- Tool 2: ESLint -->
+      <g transform="translate(262, 0)">
+        <rect width="250" height="58" rx="6" fill="#FFFFFF" stroke="#E7E5E0" />
+        <text x="12" y="20" class="code-font" font-weight="700" fill="#2563EB">ESLint (静态检查器)</text>
+        <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#57534E">仅执行 Parse 与 Transform (遍历检查)</text>
+        <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78716C">无 Generate 生成阶段（仅校验规则报警）</text>
+      </g>
+
+      <!-- Tool 3: Prettier -->
+      <g transform="translate(524, 0)">
+        <rect width="256" height="58" rx="6" fill="#FFFFFF" stroke="#E7E5E0" />
+        <text x="12" y="20" class="code-font" font-weight="700" fill="#059669">Prettier (格式化器)</text>
+        <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#57534E">Parse 解析为 CST / Doc ──► 重排 Generate</text>
+        <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78716C">不改动任何业务 AST 语义节点</text>
+      </g>
+    </g>
+  </g>
+</svg>

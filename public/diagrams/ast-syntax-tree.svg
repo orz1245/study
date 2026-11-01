@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 12px; }
+      .node-card { rx: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); stroke-width: 1.5; }
+      .tree-line { stroke: #D8D5CD; stroke-width: 2; fill: none; stroke-linecap: round; }
+      .branch-tag { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 10.5px; font-weight: 600; fill: #B4530A; }
+    </style>
+    <marker id="arr-gray" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <polygon points="0 0, 7 2.5, 0 5" fill="#A8A29E" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="520" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="518" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="144" height="22" rx="4" fill="#EAF4EE" />
+    <text x="72" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#2C6E49">ESTree / Babel 规范</text>
+    <text x="0" y="44" class="text-title">抽象语法树（AST - Abstract Syntax Tree）拓扑结构</text>
+    <text x="0" y="64" class="text-sub">以 const answer = 1 + 2 为例：从源码字符流到词法 Tokens，再到树形语法节点的完整映射</text>
+  </g>
+
+  <!-- Stage 1: Source & Tokens Banner -->
+  <g transform="translate(32, 100)">
+    <!-- Source Box -->
+    <rect width="180" height="42" rx="6" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1.5" />
+    <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#78716C">源码字符串 (Source)</text>
+    <text x="12" y="34" class="code-font" font-weight="700" fill="#1C1A17">const answer = 1 + 2</text>
+
+    <!-- Arrow -->
+    <path d="M 190 21 L 214 21" stroke="#A8A29E" stroke-width="1.8" marker-end="url(#arr-gray)" />
+
+    <!-- Tokens Flow -->
+    <rect x="224" y="0" width="592" height="42" rx="6" fill="#FFFFFF" stroke="#E7E5E0" stroke-width="1.5" />
+    <text x="236" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#78716C">词法分析结果 (Lexer Tokens 流)</text>
+    
+    <g transform="translate(236, 24)">
+      <rect x="0" y="0" width="76" height="15" rx="3" fill="#EFF6FF" />
+      <text x="38" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#1D4ED8">const (kw)</text>
+
+      <rect x="82" y="0" width="86" height="15" rx="3" fill="#F0FDF4" />
+      <text x="125" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#15803D">answer (id)</text>
+
+      <rect x="174" y="0" width="46" height="15" rx="3" fill="#FFF7ED" />
+      <text x="197" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#C2410C">= (op)</text>
+
+      <rect x="226" y="0" width="52" height="15" rx="3" fill="#FAF5FF" />
+      <text x="252" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#7E22CE">1 (num)</text>
+
+      <rect x="284" y="0" width="46" height="15" rx="3" fill="#FFF7ED" />
+      <text x="307" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#C2410C">+ (op)</text>
+
+      <rect x="336" y="0" width="52" height="15" rx="3" fill="#FAF5FF" />
+      <text x="362" y="11" text-anchor="middle" class="code-font" font-size="10" fill="#7E22CE">2 (num)</text>
+    </g>
+  </g>
+
+  <!-- Tree Structure Section -->
+  <g transform="translate(32, 160)">
+    <!-- Tree Connecting Lines -->
+    <!-- Program to VariableDeclaration -->
+    <path d="M 230 35 L 230 65" class="tree-line" />
+    
+    <!-- VariableDeclaration to Declarator -->
+    <path d="M 230 115 L 230 145" class="tree-line" />
+
+    <!-- Declarator to (id) Identifier -->
+    <path d="M 230 195 L 120 235" class="tree-line" />
+
+    <!-- Declarator to (init) BinaryExpression -->
+    <path d="M 230 195 L 360 235" class="tree-line" />
+
+    <!-- BinaryExpression to left NumericLiteral -->
+    <path d="M 360 285 L 290 325" class="tree-line" />
+
+    <!-- BinaryExpression to right NumericLiteral -->
+    <path d="M 360 285 L 430 325" class="tree-line" />
+
+    <!-- Node 1: Program -->
+    <g transform="translate(130, 0)">
+      <rect width="200" height="35" class="node-card" fill="#F8FAFC" stroke="#94A3B8" />
+      <text x="100" y="22" text-anchor="middle" class="code-font" font-weight="700" fill="#334155">Program (根节点)</text>
+    </g>
+
+    <!-- Node 2: VariableDeclaration -->
+    <g transform="translate(110, 65)">
+      <rect width="240" height="50" class="node-card" fill="#EFF6FF" stroke="#60A5FA" />
+      <text x="120" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#1D4ED8">VariableDeclaration</text>
+      <text x="120" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#3B82F6">kind: "const"</text>
+    </g>
+
+    <!-- Node 3: VariableDeclarator -->
+    <g transform="translate(125, 145)">
+      <rect width="210" height="50" class="node-card" fill="#EFF6FF" stroke="#3B82F6" />
+      <text x="105" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#1E40AF">VariableDeclarator</text>
+      <text x="105" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#60A5FA">变量声明绑定元组</text>
+    </g>
+
+    <!-- Branch labels on tree lines -->
+    <text x="140" y="218" class="branch-tag">.id</text>
+    <text x="310" y="218" class="branch-tag">.init</text>
+
+    <!-- Node 4: Identifier (left child of Declarator) -->
+    <g transform="translate(25, 235)">
+      <rect width="180" height="50" class="node-card" fill="#F0FDF4" stroke="#4ADE80" />
+      <text x="90" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#15803D">Identifier</text>
+      <text x="90" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#16A34A">name: "answer"</text>
+    </g>
+
+    <!-- Node 5: BinaryExpression (right child of Declarator) -->
+    <g transform="translate(260, 235)">
+      <rect width="200" height="50" class="node-card" fill="#FFF7ED" stroke="#FB923C" />
+      <text x="100" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#C2410C">BinaryExpression</text>
+      <text x="100" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#EA580C">operator: "+"</text>
+    </g>
+
+    <!-- Sub-branch labels -->
+    <text x="290" y="308" class="branch-tag">.left</text>
+    <text x="410" y="308" class="branch-tag">.right</text>
+
+    <!-- Node 6: Left Literal (1) -->
+    <g transform="translate(220, 325)">
+      <rect width="135" height="50" class="node-card" fill="#FAF5FF" stroke="#C084FC" />
+      <text x="67" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#7E22CE">NumericLiteral</text>
+      <text x="67" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#9333EA">value: 1</text>
+    </g>
+
+    <!-- Node 7: Right Literal (2) -->
+    <g transform="translate(370, 325)">
+      <rect width="135" height="50" class="node-card" fill="#FAF5FF" stroke="#C084FC" />
+      <text x="67" y="24" text-anchor="middle" class="code-font" font-weight="700" fill="#7E22CE">NumericLiteral</text>
+      <text x="67" y="40" text-anchor="middle" class="code-font" font-size="11" fill="#9333EA">value: 2</text>
+    </g>
+
+    <!-- Right Side Explanatory Cards -->
+    <g transform="translate(540, 0)">
+      <!-- Card 1 -->
+      <rect width="276" height="175" rx="8" fill="#FFFFFF" stroke="#E7E5E0" stroke-width="1.5" />
+      <rect x="16" y="14" width="94" height="20" rx="4" fill="#F6E8DC" />
+      <text x="63" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">为什么叫「抽象」</text>
+      <text x="16" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#1C1A17">Abstract 的真正内涵：</text>
+      <text x="16" y="76" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E" line-height="1.5">
+        <tspan x="16" dy="0">AST 剥离了源码中与运行逻辑无关的格式细节：</tspan>
+        <tspan x="16" dy="20">• 无论写 1+2 还是 1   +   2（多空格）</tspan>
+        <tspan x="16" dy="18">• 无论语句末尾加不加分号 ;</tspan>
+        <tspan x="16" dy="18">• 无论换行与缩进差异</tspan>
+        <tspan x="16" dy="22" fill="#B4530A" font-weight="600">→ 生成的树结构 100% 保持完全同一！</tspan>
+      </text>
+
+      <!-- Card 2 -->
+      <g transform="translate(0, 195)">
+        <rect width="276" height="180" rx="8" fill="#FFFFFF" stroke="#E7E5E0" stroke-width="1.5" />
+        <rect x="16" y="14" width="94" height="20" rx="4" fill="#EAF4EE" />
+        <text x="63" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#2C6E49">AST 节点统一契约</text>
+        <text x="16" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#1C1A17">{ type: "...", ... } 形状：</text>
+        <text x="16" y="76" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E" line-height="1.5">
+          <tspan x="16" dy="0">每个节点均有明确的职责与字段约束：</tspan>
+          <tspan x="16" dy="20">• type：当前节点语法角色标识</tspan>
+          <tspan x="16" dy="18">• loc / start / end：源码物理行列位置</tspan>
+          <tspan x="16" dy="18">• 属性槽位：按语法规则挂载子节点</tspan>
+          <tspan x="16" dy="22" fill="#2C6E49" font-weight="600">编译器与 Babel 插件正是遍历改写这棵树！</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

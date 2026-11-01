@@ -128,8 +128,8 @@ export function buildStaticPages({ distDir, writePage, pageShell, byCategory, si
   const lessonTotal = courses.reduce((n, c) => n + (c.lessons || []).length, 0)
   const homeMeta = homeSeo()
   const homeBody = `<header class="hero">
-<h1>原理讲透，代码跑通</h1>
-<p class="lead">从浏览器原理、JS 逆向到类型系统与工程化，每门课都围绕真实场景展开：每一段知识都配可运行的代码和动手练习，读完就能在自己的项目里用起来；题库里的每道面试题附完整答案与解析，配合掌握度标记和按方向筛选，把零散的知识点串成一条可以长期坚持的学习路径。</p>
+<h1>打穿底层链路，通透技术面试</h1>
+<p class="lead">一边是以真实工业场景为蓝本的系统级进阶课程，一边是附带深度解析与掌握度标记的高频真题库。告别碎片化八股，用纯原生可运行代码和底层系统原理，建立你不可替代的核心技术壁垒。</p>
 <div class="hero-meta">
   <div><b>${courses.length}</b><span>门系统课程</span></div>
   <div><b>${lessonTotal}</b><span>节课</span></div>

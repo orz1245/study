@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11.5px; }
+      .panel-card { rx: 10px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .frame-box { rx: 6px; stroke-width: 1; }
+      .badge-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .pointer-line { stroke: #B4530A; stroke-width: 2.2; stroke-dasharray: 4 3; fill: none; }
+    </style>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="144" height="22" rx="4" fill="#F6E8DC" />
+    <text x="72" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">V8 引擎内存与 GC 规范</text>
+    <text x="0" y="44" class="text-title">V8 运行时内存拓扑与堆栈分配模型</text>
+    <text x="0" y="64" class="text-sub">调用栈帧（Call Stack Frame）、闭包逃逸引用与 V8 托管堆（Managed Heap）分代回收架构</text>
+  </g>
+
+  <!-- Left: Call Stack -->
+  <g transform="translate(32, 105)">
+    <rect width="280" height="400" class="panel-card" fill="#FFFFFF" stroke="#93C5FD" />
+    <rect x="14" y="14" width="76" height="20" rx="4" fill="#2563EB" />
+    <text x="52" y="28" text-anchor="middle" class="badge-tag" fill="#FFFFFF">线程调用栈</text>
+    <text x="98" y="29" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#1E40AF">Call Stack (~1MB)</text>
+    <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E">连续物理内存，LIFO 后进先出，自动管理</text>
+
+    <!-- Stack Frame 3: Top Frame -->
+    <g transform="translate(14, 66)">
+      <rect width="252" height="74" class="frame-box" fill="#EFF6FF" stroke="#BFDBFE" />
+      <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="700" fill="#1D4ED8">inner() 栈帧 (当前执行栈顶)</text>
+      <text x="12" y="38" class="code-font" fill="#3B82F6">局部原始值: let a = 1, b = 2</text>
+      <text x="12" y="54" class="code-font" fill="#3B82F6">返回地址 / 寄存器上下文 (RBP/RSP)</text>
+      <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#60A5FA">执行完即销毁（指针下移 0 开销）</text>
+    </g>
+
+    <!-- Stack Frame 2: makeCounter() Frame -->
+    <g transform="translate(14, 150)">
+      <rect width="252" height="96" class="frame-box" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.5" />
+      <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="700" fill="#C2410C">makeCounter() 栈帧（外层函数）</text>
+      <text x="12" y="38" class="code-font" fill="#EA580C">基础变量: let temp = 100</text>
+      
+      <!-- Escaped Pointer Box -->
+      <rect x="10" y="46" width="232" height="42" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" />
+      <text x="18" y="62" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#B4530A">⚠️ 闭包逃逸变量 (count)</text>
+      <text x="18" y="78" class="code-font" font-size="10.5" fill="#92400E">堆指针 ──► 指向堆上的 Context</text>
+    </g>
+
+    <!-- Stack Frame 1: Global Context -->
+    <g transform="translate(14, 256)">
+      <rect width="252" height="74" class="frame-box" fill="#F8FAFC" stroke="#CBD5E1" />
+      <text x="12" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Global Context（全局执行环境）</text>
+      <text x="12" y="38" class="code-font" fill="#64748B">全局变量 / 顶层函数声明</text>
+      <text x="12" y="56" class="code-font" fill="#64748B">window / globalThis 引用</text>
+    </g>
+
+    <g transform="translate(14, 344)">
+      <rect width="252" height="42" rx="4" fill="#FEF2F2" stroke="#FECACA" stroke-width="1" />
+      <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#B91C1C">栈溢出风险 (Stack Overflow)</text>
+      <text x="12" y="32" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#DC2626">无限递归或深度超 10,000 层时栈空间耗尽</text>
+    </g>
+  </g>
+
+  <!-- Pointer Line: Frame 2 Escaped Var -> Heap Context Object -->
+  <path d="M 288 322 C 330 322, 350 355, 394 355" class="pointer-line" marker-end="url(#arr-accent)" />
+  <text x="342" y="332" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#B4530A">堆指针</text>
+
+  <!-- Right: V8 Managed Heap -->
+  <g transform="translate(360, 105)">
+    <rect width="488" height="400" class="panel-card" fill="#FFFFFF" stroke="#86EFAC" />
+    <rect x="16" y="14" width="76" height="20" rx="4" fill="#16A34A" />
+    <text x="54" y="28" text-anchor="middle" class="badge-tag" fill="#FFFFFF">V8 托管堆</text>
+    <text x="100" y="29" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#166534">V8 Managed Heap (上限 ~1.4GB - 4GB)</text>
+    <text x="16" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#57534E">分代垃圾回收（Generational GC）：存活越久的对象越少被扫描</text>
+
+    <!-- Sub Space 1: New Space -->
+    <g transform="translate(16, 66)">
+      <rect width="456" height="88" rx="8" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.5" />
+      <text x="14" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" fill="#15803D">新生代（New Space / 16MB ~ 64MB）</text>
+      <text x="270" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#16A34A">Minor GC（Scavenge 复制算法）</text>
+      
+      <g transform="translate(14, 30)">
+        <!-- From Space -->
+        <rect width="206" height="46" rx="4" fill="#FFFFFF" stroke="#86EFAC" stroke-width="1" />
+        <text x="10" y="18" class="code-font" font-weight="700" fill="#166534">From 空间 (Active 活跃)</text>
+        <text x="10" y="34" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#4B5563">分配临时新对象，存活对象拷贝至 To</text>
+
+        <!-- To Space -->
+        <g transform="translate(220, 0)">
+          <rect width="206" height="46" rx="4" fill="#FFFFFF" stroke="#86EFAC" stroke-width="1" />
+          <text x="10" y="18" class="code-font" font-weight="700" fill="#166534">To 空间 (Inactive 空闲)</text>
+          <text x="10" y="34" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#4B5563">GC 结束后与 From 角色互换 (Swap)</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Sub Space 2: Old Space -->
+    <g transform="translate(16, 164)">
+      <rect width="456" height="135" rx="8" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5" />
+      <text x="14" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" fill="#92400E">老生代（Old Space / 经历 2 次 Scavenge 晋升的对象）</text>
+      <text x="280" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#B4530A">Major GC（Mark-Sweep-Compact）</text>
+
+      <!-- Old Pointer Space (Closure Context lives here!) -->
+      <g transform="translate(14, 32)">
+        <rect width="206" height="90" rx="4" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" />
+        <text x="10" y="18" class="code-font" font-weight="700" fill="#B4530A">Old Pointer Space</text>
+        <rect x="8" y="26" width="190" height="56" rx="4" fill="#FEF3C7" />
+        <text x="14" y="42" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#92400E">📦 闭包 Context 对象</text>
+        <text x="14" y="58" class="code-font" font-size="10" fill="#78350F">{ count: 1, ... }</text>
+        <text x="14" y="72" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#B4530A">逃逸变量在此常驻，GC 无法回收！</text>
+      </g>
+
+      <!-- Old Data Space -->
+      <g transform="translate(234, 32)">
+        <rect width="208" height="90" rx="4" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1" />
+        <text x="10" y="18" class="code-font" font-weight="700" fill="#92400E">Old Data Space</text>
+        <text x="10" y="38" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78350F">包含纯原始数据、字符串、</text>
+        <text x="10" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78350F">不包含外部对象指针的连续内存。</text>
+        <text x="10" y="76" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#92400E">算法：增量标记 + 惰性清理 + 整理</text>
+      </g>
+    </g>
+
+    <!-- Sub Space 3: Large Object & Code Space -->
+    <g transform="translate(16, 310)">
+      <rect width="456" height="74" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" />
+      
+      <!-- Large Object -->
+      <g transform="translate(14, 10)">
+        <rect width="206" height="52" rx="4" fill="#FFFFFF" stroke="#CBD5E1" />
+        <text x="10" y="18" class="code-font" font-weight="700" fill="#334155">Large Object Space</text>
+        <text x="10" y="34" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">超过 ~512KB 超大对象直入堆</text>
+        <text x="10" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">GC 从不移动它（避免高昂拷贝）</text>
+      </g>
+
+      <!-- Code Space -->
+      <g transform="translate(234, 10)">
+        <rect width="208" height="52" rx="4" fill="#FFFFFF" stroke="#CBD5E1" />
+        <text x="10" y="18" class="code-font" font-weight="700" fill="#334155">Code Space (代码区)</text>
+        <text x="10" y="34" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">JIT TurboFan 编译优化机器码</text>
+        <text x="10" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">具备可执行（Executable）权限内存</text>
+      </g>
+    </g>
+  </g>
+</svg>

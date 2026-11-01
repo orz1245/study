@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11.5px; }
+      .card-box { rx: 8px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .badge-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700; }
+      .arrow { stroke: #6366F1; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .loop-arrow { stroke: #B4530A; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; fill: none; stroke-dasharray: 4 3; }
+    </style>
+    <marker id="arr-indigo" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#6366F1" />
+    </marker>
+    <marker id="arr-amber" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#16A34A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="138" height="22" rx="4" fill="#EEF2FF" />
+    <text x="69" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#4F46E5">AI Agent 控制内核</text>
+    <text x="0" y="44" class="text-title">AI Agent ReAct（思考-行动-观察）闭环状态机</text>
+    <text x="0" y="64" class="text-sub">以大模型为决策中枢：感知组装 ──► 思考 (Thought) ──► 行动调用 (Action) ──► 环境观察 (Observation)</text>
+  </g>
+
+  <!-- Main Architecture Container -->
+  <g transform="translate(32, 105)">
+    <!-- Step 1: Perceive (User Goal & Memory) -->
+    <g transform="translate(0, 0)">
+      <rect width="520" height="64" class="card-box" fill="#FFFFFF" stroke="#CBD5E1" />
+      <rect x="14" y="12" width="60" height="18" rx="3" fill="#F1F5F9" />
+      <text x="44" y="25" text-anchor="middle" class="badge-tag" fill="#475569">1. 感知</text>
+      <text x="82" y="26" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#1E293B">工作记忆组装 (Working Memory Assembly)</text>
+      <text x="14" y="48" class="code-font" fill="#64748B">System Prompt (角色与工具规范) + User Goal (用户目标) + 历史上下文消息</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <path d="M 260 64 L 260 88" class="arrow" marker-end="url(#arr-indigo)" />
+
+    <!-- Step 2: Reasoning (Thought) -->
+    <g transform="translate(0, 88)">
+      <rect width="520" height="74" class="card-box" fill="#EEF2FF" stroke="#A5B4FC" stroke-width="1.5" />
+      <rect x="14" y="12" width="60" height="18" rx="3" fill="#6366F1" />
+      <text x="44" y="25" text-anchor="middle" class="badge-tag" fill="#FFFFFF">2. 思考</text>
+      <text x="82" y="26" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#3730A3">LLM 显式推理链（Thought / Scratchpad）</text>
+      <text x="14" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#4338CA">自回归生成思考草稿：已知什么信息？还缺什么事实？下一步为什么要调用特定工具？</text>
+      <text x="14" y="64" class="code-font" fill="#4F46E5">显著抑制盲目试错与幻觉，赋予模型“草稿纸”缓冲计算空间</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <path d="M 260 162 L 260 186" class="arrow" marker-end="url(#arr-indigo)" />
+
+    <!-- Step 3: Decision & Action -->
+    <g transform="translate(0, 186)">
+      <rect width="520" height="88" class="card-box" fill="#FFFFFF" stroke="#FDBA74" stroke-width="1.5" />
+      <rect x="14" y="12" width="60" height="18" rx="3" fill="#EA580C" />
+      <text x="44" y="25" text-anchor="middle" class="badge-tag" fill="#FFFFFF">3. 行动</text>
+      <text x="82" y="26" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#9A3412">工具调用决策与死循环守卫 (Action &amp; Loop Guard)</text>
+      
+      <!-- Sub info: Signature & Loop guard -->
+      <g transform="translate(14, 38)">
+        <rect width="240" height="38" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="10" y="16" class="code-font" font-weight="700" fill="#C2410C">生成 Tool Call Schema</text>
+        <text x="10" y="30" class="code-font" font-size="10" fill="#EA580C">name: "fetch", args: { ... }</text>
+
+        <g transform="translate(248, 0)">
+          <rect width="244" height="38" rx="4" fill="#FEF2F2" stroke="#FECACA" />
+          <text x="10" y="16" class="code-font" font-weight="700" fill="#B91C1C">🛡️ Loop Guard 死循环守卫</text>
+          <text x="10" y="30" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#DC2626">参数哈希比对，拦截连续重复调用！</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Branching to Final Answer (Right Side) -->
+    <path d="M 520 112 L 592 112" class="arrow" stroke="#16A34A" stroke-width="2" marker-end="url(#arr-green)" />
+    <text x="556" y="104" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#15803D">无需调工具</text>
+
+    <!-- Final Answer Card -->
+    <g transform="translate(600, 88)">
+      <rect width="216" height="74" class="card-box" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5" />
+      <rect x="14" y="12" width="76" height="18" rx="3" fill="#16A34A" />
+      <text x="52" y="25" text-anchor="middle" class="badge-tag" fill="#FFFFFF">推理收敛</text>
+      <text x="14" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#166534">Final Answer (最终回答)</text>
+      <text x="14" y="64" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#15803D">任务目标圆满达成，输出给用户</text>
+    </g>
+
+    <!-- Arrow 3 -> 4 -->
+    <path d="M 260 274 L 260 298" class="arrow" marker-end="url(#arr-indigo)" />
+
+    <!-- Step 4: Environment Execution -->
+    <g transform="translate(0, 298)">
+      <rect width="520" height="88" class="card-box" fill="#FFFFFF" stroke="#93C5FD" stroke-width="1.5" />
+      <rect x="14" y="12" width="60" height="18" rx="3" fill="#2563EB" />
+      <text x="44" y="25" text-anchor="middle" class="badge-tag" fill="#FFFFFF">4. 执行</text>
+      <text x="82" y="26" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#1E40AF">宿主环境与真实物理交互 (Host Execution)</text>
+      <text x="14" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#1E3A8A">执行本地 JS 函数 / 文件读写 (VFS) / MCP 远程协议 / API 网络请求</text>
+      
+      <rect x="14" y="58" width="492" height="22" rx="4" fill="#EFF6FF" />
+      <text x="24" y="73" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#1D4ED8">⚠️ 核心工程纪律：异常捕获包装为 Observation 反馈给模型自愈，绝不直接 Crash！</text>
+    </g>
+
+    <!-- Arrow 4 -> 5 -->
+    <path d="M 260 386 L 260 410" class="arrow" marker-end="url(#arr-indigo)" />
+
+    <!-- Step 5: Observe -->
+    <g transform="translate(0, 410)">
+      <rect width="520" height="66" class="card-box" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5" />
+      <rect x="14" y="12" width="60" height="18" rx="3" fill="#D97706" />
+      <text x="44" y="25" text-anchor="middle" class="badge-tag" fill="#FFFFFF">5. 观察</text>
+      <text x="82" y="26" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#92400E">环境反馈回填 (Observation Injection)</text>
+      <text x="14" y="48" class="code-font" fill="#78350F">封装为 role: 'tool' 消息，携带 tool_call_id 与执行结果，追加回对话上下文</text>
+    </g>
+
+    <!-- Loop Back Arrow: Observation back to Reasoning -->
+    <path d="M 520 443 L 555 443 Q 565 443 565 433 L 565 152 Q 565 142 550 142 L 528 142" class="loop-arrow" marker-end="url(#arr-amber)" />
+    <text x="575" y="280" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="700" fill="#B4530A">反馈回流</text>
+    <text x="575" y="296" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#78716C">开启下一轮</text>
+    <text x="575" y="310" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#78716C">Thought 思考</text>
+
+    <!-- Right Side Explanatory Card -->
+    <g transform="translate(600, 186)">
+      <rect width="216" height="225" rx="8" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1" />
+      <text x="14" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" fill="#1C1A17">ReAct 生产三大防线：</text>
+      <text x="14" y="44" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#44403C" line-height="1.5">
+        <tspan x="14" dy="0" font-weight="700" fill="#B4530A">1. maxSteps 硬熔断</tspan>
+        <tspan x="14" dy="16" fill="#57534E">防止任务陷入无休止死循环，</tspan>
+        <tspan x="14" dy="16" fill="#57534E">烧穿云端 Token 配额与连接。</tspan>
+        <tspan x="14" dy="24" font-weight="700" fill="#B4530A">2. 动作参数归一化</tspan>
+        <tspan x="14" dy="16" fill="#57534E">按 JSON 键名字典序排序比对，</tspan>
+        <tspan x="14" dy="16" fill="#57534E">精确识别重复调用并主动拦截。</tspan>
+        <tspan x="14" dy="24" font-weight="700" fill="#B4530A">3. 消息原子组保护</tspan>
+        <tspan x="14" dy="16" fill="#57534E">裁剪历史时绝不可切断 tool_calls</tspan>
+        <tspan x="14" dy="16" fill="#57534E">与对应 tool 消息，严防 400 报错。</tspan>
+      </text>
+    </g>
+  </g>
+</svg>

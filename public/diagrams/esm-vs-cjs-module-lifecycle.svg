@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11px; }
+      .side-card { rx: 10px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .unit-box { rx: 6px; stroke-width: 1; }
+      .badge-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10.5px; font-weight: 700; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    </style>
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#EA580C" />
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#16A34A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="148" height="22" rx="4" fill="#F6E8DC" />
+    <text x="74" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">ECMAScript &amp; Node.js 规范</text>
+    <text x="0" y="44" class="text-title">CommonJS 与 ES Module 执行生命周期拓扑对比</text>
+    <text x="0" y="64" class="text-sub">运行时动态加载（值拷贝快照） vs 规范三阶段引擎调度（静态分析与实时绑定 Live Binding）</text>
+  </g>
+
+  <!-- Main Comparison Columns -->
+  <g transform="translate(32, 105)">
+    <!-- Left Column: CommonJS (CJS) -->
+    <g transform="translate(0, 0)">
+      <rect width="395" height="270" class="side-card" fill="#FFFFFF" stroke="#FDBA74" />
+      <rect x="14" y="12" width="76" height="20" rx="4" fill="#EA580C" />
+      <text x="52" y="26" text-anchor="middle" class="badge-tag" fill="#FFFFFF">CommonJS</text>
+      <text x="100" y="27" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13.5" font-weight="700" fill="#9A3412">运行时同步加载模型 (Dynamic Runtime)</text>
+      <text x="14" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#78716C">执行到 require() 时才同步 I/O 读取文件并执行</text>
+
+      <!-- Step 1: require call -->
+      <g transform="translate(14, 60)">
+        <rect width="367" height="42" class="unit-box" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#C2410C">1. require(path) 调用与缓存检查</text>
+        <text x="10" y="32" class="code-font" fill="#9A3412">命中 require.cache[absPath] 直接返回，否则同步加载</text>
+      </g>
+      
+      <!-- Downward arrow -->
+      <path d="M 197 102 L 197 110" stroke="#EA580C" stroke-width="1.8" marker-end="url(#arr-orange)" />
+
+      <!-- Step 2: Module wrapper & sync run -->
+      <g transform="translate(14, 112)">
+        <rect width="367" height="52" class="unit-box" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#C2410C">2. 函数包装与同步执行</text>
+        <text x="10" y="32" class="code-font" fill="#7C2D12">(function(exports, require, module, __filename, __dirname){</text>
+        <text x="10" y="45" class="code-font" fill="#7C2D12">  // 逐行同步执行，若遇到循环 require 可能拿半成品！</text>
+      </g>
+
+      <!-- Downward arrow -->
+      <path d="M 197 164 L 197 172" stroke="#EA580C" stroke-width="1.8" marker-end="url(#arr-orange)" />
+
+      <!-- Step 3: Value snapshot export -->
+      <g transform="translate(14, 174)">
+        <rect width="367" height="46" class="unit-box" fill="#FEF2F2" stroke="#FECACA" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B91C1C">3. module.exports 导出值浅拷贝</text>
+        <text x="10" y="34" class="code-font" fill="#991B1B">返回快照 (Snapshot)！导出方后续修改，导入方完全感知不到</text>
+      </g>
+
+      <text x="14" y="246" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#64748B">局限：动态性导致无法 Tree-Shaking，浏览器端无法直接原生加载</text>
+    </g>
+
+    <!-- Right Column: ES Module (ESM) -->
+    <g transform="translate(421, 0)">
+      <rect width="395" height="270" class="side-card" fill="#FFFFFF" stroke="#86EFAC" />
+      <rect x="14" y="12" width="76" height="20" rx="4" fill="#16A34A" />
+      <text x="52" y="26" text-anchor="middle" class="badge-tag" fill="#FFFFFF">ES Module</text>
+      <text x="100" y="27" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13.5" font-weight="700" fill="#166534">规范三阶段加载模型 (3-Phase Pipeline)</text>
+      <text x="14" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#78716C">严格区分构造、链接与执行，天然适合异步网络分发</text>
+
+      <!-- Phase 1: Construction -->
+      <g transform="translate(14, 60)">
+        <rect width="367" height="42" class="unit-box" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#15803D">1. 构造阶段 (Construction / Parse)</text>
+        <text x="10" y="32" class="code-font" fill="#166534">异步下载并解析 AST，递归发现 import 建立 Module Graph</text>
+      </g>
+
+      <!-- Downward arrow -->
+      <path d="M 197 102 L 197 110" stroke="#16A34A" stroke-width="1.8" marker-end="url(#arr-green)" />
+
+      <!-- Phase 2: Instantiation -->
+      <g transform="translate(14, 112)">
+        <rect width="367" height="52" class="unit-box" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#15803D">2. 实例化阶段 (Instantiation · Live Binding)</text>
+        <text x="10" y="32" class="code-font" fill="#166534">为所有 export 变量分配内存槽位，建立只读引用链接</text>
+        <text x="10" y="45" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#047857">⚠️ 此时绝不执行任何 JS 代码逻辑，暂不赋初始值</text>
+      </g>
+
+      <!-- Downward arrow -->
+      <path d="M 197 164 L 197 172" stroke="#16A34A" stroke-width="1.8" marker-end="url(#arr-green)" />
+
+      <!-- Phase 3: Evaluation -->
+      <g transform="translate(14, 174)">
+        <rect width="367" height="46" class="unit-box" fill="#ECFDF5" stroke="#A7F3D0" />
+        <text x="10" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#065F46">3. 求值阶段 (Evaluation · DFS 后序执行)</text>
+        <text x="10" y="34" class="code-font" fill="#065F46">自底向上执行代码，填充内存槽位实际数值（叶子模块先跑）</text>
+      </g>
+
+      <text x="14" y="246" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#15803D">优势：支持顶级 await，静态结构赋予打包器极致 Tree-Shaking 空间</text>
+    </g>
+  </g>
+
+  <!-- Bottom Section: Memory Model Comparison (Snapshot Copy vs Live Binding) -->
+  <g transform="translate(32, 395)">
+    <rect width="816" height="120" rx="8" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1.5" />
+    <text x="16" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#1C1A17">核心底层差异：值拷贝 (Copy by Value) vs 实时引用绑定 (Live Binding) 内存拓扑图解</text>
+
+    <!-- Sub Card A: CJS Value Copy -->
+    <g transform="translate(16, 36)">
+      <rect width="384" height="70" rx="6" fill="#FFFFFF" stroke="#E7E5E0" />
+      <text x="12" y="20" class="code-font" font-weight="700" fill="#EA580C">CJS: 导出是值的单次快照拷贝</text>
+      <text x="12" y="38" class="code-font" font-size="10.5" fill="#78716C">模块 A: let count = 1; module.exports = { count }</text>
+      <text x="12" y="54" class="code-font" font-size="10.5" fill="#B91C1C">模块 B: const { count } = require('./A'); // 拿到了独立数值 1</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#DC2626">A 后续执行 count++，B 内存中的 count 永远停在 1，毫无反应！</text>
+    </g>
+
+    <!-- Sub Card B: ESM Live Binding -->
+    <g transform="translate(416, 36)">
+      <rect width="384" height="70" rx="6" fill="#FFFFFF" stroke="#E7E5E0" />
+      <text x="12" y="20" class="code-font" font-weight="700" fill="#16A34A">ESM: 实时指向导出模块的环境记录槽位</text>
+      <text x="12" y="38" class="code-font" font-size="10.5" fill="#78716C">模块 A: export let count = 1; export const inc = () => count++</text>
+      <text x="12" y="54" class="code-font" font-size="10.5" fill="#15803D">模块 B: import { count, inc } from './A'; // 建立只读活链接</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#15803D">调用 inc() 后，B 再次读取 count 自动变为 2！实时共享槽位！</text>
+    </g>
+  </g>
+</svg>

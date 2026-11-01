@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11px; }
+      .layer-card { rx: 8px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .tag-badge { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10.5px; font-weight: 700; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .flow-arrow { stroke: #059669; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    </style>
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arr-emerald" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#059669" />
+    </marker>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="144" height="22" rx="4" fill="#EAF4EE" />
+    <text x="72" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#059669">富文本现代化内核</text>
+    <text x="0" y="44" class="text-title">现代富文本编辑器受控单向数据流分层架构</text>
+    <text x="0" y="64" class="text-sub">告别 execCommand 混沌泥潭：DOM 宿主交互 ──► 输入受控管道 ──► JSON AST 事务状态机 ──► 响应式局部协同渲染</text>
+  </g>
+
+  <!-- 4-Layer Architecture Diagram -->
+  <g transform="translate(32, 105)">
+    <!-- Layer 1: View & DOM Host -->
+    <g transform="translate(0, 0)">
+      <rect width="194" height="260" class="layer-card" fill="#FFFFFF" stroke="#93C5FD" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#2563EB" />
+      <text x="42" y="25" text-anchor="middle" class="tag-badge" fill="#FFFFFF">第 1 层</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#1E40AF">宿主与视图层</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">原生 DOM 桥接与渲染</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="174" height="34" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#1D4ED8">contenteditable="true"</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#3B82F6">提供浏览器原生打字体验</text>
+      </g>
+      <g transform="translate(10, 120)">
+        <rect width="174" height="34" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#1D4ED8">Selection &amp; Range</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#3B82F6">光标折叠、选区与物理坐标</text>
+      </g>
+      <g transform="translate(10, 162)">
+        <rect width="174" height="34" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#1D4ED8">contenteditable="false"</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#3B82F6">原子黑盒卡片孤岛 (Embeds)</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#2563EB">痛点：浏览器默认行为分裂</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#64748B">必须剥离编辑权，建立受控拦截</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <path d="M 198 135 L 206 135" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Layer 2: Input Pipeline -->
+    <g transform="translate(210, 0)">
+      <rect width="198" height="260" class="layer-card" fill="#FFFFFF" stroke="#FDBA74" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#EA580C" />
+      <text x="42" y="25" text-anchor="middle" class="tag-badge" fill="#FFFFFF">第 2 层</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#9A3412">输入拦截管道</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">清洗数据与行为守卫</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="178" height="34" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#C2410C">beforeinput 事件拦截</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#EA580C">preventDefault 阻止 DOM 乱写</text>
+      </g>
+      <g transform="translate(10, 120)">
+        <rect width="178" height="34" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#C2410C">IME 拼音合成锁 (Lock)</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#EA580C">锁定未上屏草稿，严防误伤</text>
+      </g>
+      <g transform="translate(10, 162)">
+        <rect width="178" height="34" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#C2410C">剪贴板清洗 (Paste)</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#EA580C">过滤脏标签，纯净入库</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#EA580C">职责：意图抽象化</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#78716C">转换为原子意图 { type, text }</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <path d="M 412 135 L 420 135" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Layer 3: Core Data Model -->
+    <g transform="translate(424, 0)">
+      <rect width="194" height="260" class="layer-card" fill="#FFFFFF" stroke="#059669" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#059669" />
+      <text x="42" y="25" text-anchor="middle" class="tag-badge" fill="#FFFFFF">第 3 层</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#065F46">核心数据模型 (Soul)</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">单一事实源与事务状态机</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="174" height="34" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#15803D">JSON AST 结构树</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#16A34A">Doc ──► Block ──► Inline</text>
+      </g>
+      <g transform="translate(10, 120)">
+        <rect width="174" height="34" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#15803D">不可变状态 (Immutable)</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#16A34A">严守 Schema 约束与校验</text>
+      </g>
+      <g transform="translate(10, 162)">
+        <rect width="174" height="34" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#15803D">事务与撤销栈 (Undo)</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#16A34A">Transaction 原子变更集合</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#059669">核心：单一事实真理来源</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#78716C">编辑器状态永远完全由 JSON 决定</text>
+    </g>
+
+    <!-- Arrow 3 -> 4 -->
+    <path d="M 622 135 L 630 135" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Layer 4: Reconcile & Collaboration -->
+    <g transform="translate(634, 0)">
+      <rect width="182" height="260" class="layer-card" fill="#FFFFFF" stroke="#C084FC" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#9333EA" />
+      <text x="42" y="25" text-anchor="middle" class="tag-badge" fill="#FFFFFF">第 4 层</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#6B21A8">协调与协同扩展</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">高效渲染与分布式收敛</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="162" height="34" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#7E22CE">局部 Diff 协调器</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#9333EA">仅将脏节点刷回真实 DOM</text>
+      </g>
+      <g transform="translate(10, 120)">
+        <rect width="162" height="34" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#7E22CE">DOM Virtualization</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#9333EA">长文档虚拟视口滚动撑开</text>
+      </g>
+      <g transform="translate(10, 162)">
+        <rect width="162" height="34" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#7E22CE">实时协同 (OT / CRDT)</text>
+        <text x="8" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#9333EA">广播原子意图，动态顺移坐标</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#7E22CE">代表实现：ProseMirror</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" fill="#78716C">TipTap / Lexical / Slate</text>
+    </g>
+  </g>
+
+  <!-- Bottom: Classic Anti-Pattern vs Modern Controlled Architecture -->
+  <g transform="translate(32, 385)">
+    <rect width="816" height="130" rx="8" fill="#F3F1EC" stroke="#E7E5E0" stroke-width="1.5" />
+    <text x="16" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#1C1A17">富文本进化代际哲学对比：直接操作 DOM 的泥潭 vs 受控单向数据流</text>
+
+    <!-- Left: L1 Old execCommand -->
+    <g transform="translate(16, 36)">
+      <rect width="384" height="80" rx="6" fill="#FFFFFF" stroke="#FECACA" />
+      <text x="12" y="20" class="code-font" font-weight="700" fill="#DC2626">❌ 第一代: document.execCommand 直接涂抹 DOM</text>
+      <text x="12" y="38" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#78716C">直接修改浏览器 DOM 树，Chrome 加粗产出 &lt;b&gt;，Safari 产出 &lt;strong&gt; 或 style 样式！</text>
+      <text x="12" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#991B1B">无数据模型、无统一撤销栈、各浏览器产出 HTML 极度混乱脏污，协同编辑完全无解。</text>
+    </g>
+
+    <!-- Right: L2 Modern Controlled -->
+    <g transform="translate(416, 36)">
+      <rect width="384" height="80" rx="6" fill="#FFFFFF" stroke="#86EFAC" />
+      <text x="12" y="20" class="code-font" font-weight="700" fill="#16A34A">✅ 现代工业级: 严格单向数据流 (Model ──► View)</text>
+      <text x="12" y="38" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#15803D">浏览器仅作纯展示画布与事件发射源，用户所有按键与点击均经过受控管道折算为 Transaction；</text>
+      <text x="12" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#15803D">数据模型（JSON AST）经由纯函数更新，再单向局部刷回 DOM，彻底终结黑盒与兼容性噩梦！</text>
+    </g>
+  </g>
+</svg>

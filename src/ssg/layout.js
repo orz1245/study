@@ -90,7 +90,7 @@ export function footerHtml() {
     .join('<span class="sep">·</span>')
   return `<footer class="colophon">
   <div class="colophon-links"><span class="lbl">友情链接：</span>${flLinks}<span class="sep">·</span><a href="/links/">全部友链 →</a><span class="sep">·</span><a class="apply-fl" href="/guestbook/?ref=friendlink">申请友链 →</a></div>
-  <div class="colophon-copy">© 2026 <a class="cp-site" href="${SITE}/">前端学习网</a><span class="sep">·</span><span>原理讲透，代码跑通</span><span class="sep">·</span><span>基于 Cloudflare Pages 静态直出</span><span class="sep">·</span><span>MIT 开源</span></div>
+  <div class="colophon-copy">© 2026 <a class="cp-site" href="${SITE}/">前端学习网</a><span class="sep">·</span><span>打穿底层链路，通透技术面试</span><span class="sep">·</span><span>基于 Cloudflare Pages 静态直出</span><span class="sep">·</span><span>MIT 开源</span></div>
 </footer>`
 }
 

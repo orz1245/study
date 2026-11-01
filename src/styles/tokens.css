@@ -31,6 +31,14 @@
   --sans: 'Noto Sans SC', -apple-system, 'PingFang SC', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 
+  /* —— 2.0 编辑部语义强调色 —— */
+  --sage: #2C6E49;
+  --sage-bg: #EAF4EE;
+  --indigo: #2D5A7B;
+  --indigo-bg: #EBF2F7;
+  --vermilion: #A83324;
+  --vermilion-bg: #FAECE9;
+
   /* —— 语义别名 ——
      早期 Vue 组件的 scoped 样式全部引用下面这套名字
      （--bg-card / --text-secondary / --radius / --difficulty-easy …）。
@@ -74,7 +82,9 @@
   --shadow-sm: none;
   --shadow: 0 1px 2px rgba(28, 26, 23, 0.04);
   --shadow-md: 0 4px 14px rgba(28, 26, 23, 0.06);
-  --shadow-hover: 0 10px 30px rgba(28, 26, 23, 0.08);
+  --shadow-subtle: 0 1px 3px rgba(28, 26, 23, 0.04), 0 1px 2px rgba(28, 26, 23, 0.02);
+  --shadow-card: 0 2px 8px rgba(28, 26, 23, 0.04), 0 1px 2px rgba(28, 26, 23, 0.02);
+  --shadow-hover: 0 10px 24px rgba(28, 26, 23, 0.08), 0 2px 6px rgba(28, 26, 23, 0.04);
 
   --content-max-width: 860px;
 

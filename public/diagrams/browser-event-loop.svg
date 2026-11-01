@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .box-card { fill: #FFFFFF; stroke: #E7E5E0; stroke-width: 1.5; rx: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .box-head { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 13.5px; font-weight: 700; }
+      .box-chip { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11px; font-weight: 600; }
+      .box-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 11.5px; fill: #57534E; line-height: 1.5; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .arrow-accent { stroke: #B4530A; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    </style>
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2563EB" />
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#059669" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 26)">
+    <rect x="0" y="0" width="138" height="22" rx="4" fill="#F6E8DC" />
+    <text x="69" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">WHATWG 标准规范</text>
+    <text x="0" y="44" class="text-title">浏览器事件循环（Event Loop）与任务调度拓扑</text>
+    <text x="0" y="64" class="text-sub">单次 Tick 循环流转、微任务清空检查点（Microtask Checkpoint）与渲染时机判定</text>
+  </g>
+
+  <!-- Center Call Stack -->
+  <g transform="translate(310, 115)">
+    <rect width="260" height="155" rx="10" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5" />
+    <rect x="16" y="14" width="70" height="20" rx="4" fill="#2563EB" />
+    <text x="51" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">主线程</text>
+    <text x="94" y="29" class="box-head" fill="#1E40AF">调用栈（Call Stack）</text>
+    <text x="16" y="52" class="box-desc">后进先出 (LIFO)，执行当前同步 JS 代码</text>
+    
+    <g transform="translate(16, 62)">
+      <rect width="228" height="24" rx="4" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1" />
+      <text x="114" y="16" text-anchor="middle" class="box-chip" fill="#1E40AF">当前同步函数帧 (Stack Frame)</text>
+    </g>
+    <g transform="translate(16, 92)">
+      <rect width="228" height="24" rx="4" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1" />
+      <text x="114" y="16" text-anchor="middle" class="box-chip" fill="#1E40AF">全局执行上下文 (Global Context)</text>
+    </g>
+    <text x="16" y="136" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#3B82F6">调用栈彻底排空后，进入微任务检查点</text>
+  </g>
+
+  <!-- Left: Macrotask Queue -->
+  <g transform="translate(32, 115)">
+    <rect width="240" height="155" class="box-card" stroke="#FDBA74" stroke-width="1.5" />
+    <rect x="14" y="14" width="84" height="20" rx="4" fill="#EA580C" />
+    <text x="56" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">宏任务队列</text>
+    <text x="106" y="29" class="box-head" fill="#9A3412">Task Queue</text>
+    
+    <text x="14" y="52" class="box-desc">每轮 Tick 仅取出【最老的一个】任务执行：</text>
+    <g transform="translate(14, 62)">
+      <rect width="212" height="20" rx="3" fill="#FFF7ED" />
+      <text x="10" y="14" class="box-chip" fill="#C2410C">setTimeout / setInterval 定时器</text>
+    </g>
+    <g transform="translate(14, 86)">
+      <rect width="212" height="20" rx="3" fill="#FFF7ED" />
+      <text x="10" y="14" class="box-chip" fill="#C2410C">MessageChannel / postMessage</text>
+    </g>
+    <g transform="translate(14, 110)">
+      <rect width="212" height="20" rx="3" fill="#FFF7ED" />
+      <text x="10" y="14" class="box-chip" fill="#C2410C">DOM 用户交互 / 网络 I/O 回调</text>
+    </g>
+    <text x="14" y="146" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#EA580C">取 1 个宏任务 ──► 压入调用栈</text>
+  </g>
+
+  <!-- Arrow Macrotask -> Call Stack -->
+  <path d="M 272 192 L 308 192" class="arrow" stroke="#EA580C" stroke-width="2.2" marker-end="url(#arr-accent)" />
+
+  <!-- Right: Microtask Queue -->
+  <g transform="translate(608, 115)">
+    <rect width="240" height="155" class="box-card" stroke="#C084FC" stroke-width="1.5" />
+    <rect x="14" y="14" width="84" height="20" rx="4" fill="#9333EA" />
+    <text x="56" y="28" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF">微任务队列</text>
+    <text x="106" y="29" class="box-head" fill="#6B21A8">Microtask</text>
+    
+    <text x="14" y="52" class="box-desc">调用栈空闲时，【连续清空全部】微任务：</text>
+    <g transform="translate(14, 62)">
+      <rect width="212" height="20" rx="3" fill="#FAF5FF" />
+      <text x="10" y="14" class="box-chip" fill="#7E22CE">Promise.then / catch / finally</text>
+    </g>
+    <g transform="translate(14, 86)">
+      <rect width="212" height="20" rx="3" fill="#FAF5FF" />
+      <text x="10" y="14" class="box-chip" fill="#7E22CE">queueMicrotask(...) 回调</text>
+    </g>
+    <g transform="translate(14, 110)">
+      <rect width="212" height="20" rx="3" fill="#FAF5FF" />
+      <text x="10" y="14" class="box-chip" fill="#7E22CE">MutationObserver 监听器</text>
+    </g>
+    <text x="14" y="146" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#9333EA">清空队列（含新派生的微任务）</text>
+  </g>
+
+  <!-- Arrow Call Stack -> Microtask Queue -->
+  <path d="M 570 192 L 606 192" class="arrow" stroke="#9333EA" stroke-width="2.2" marker-end="url(#arr-accent)" />
+
+  <!-- Lower Section: Rendering Pipeline Check -->
+  <g transform="translate(32, 305)">
+    <!-- Container Card -->
+    <rect width="816" height="195" rx="10" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5" />
+    
+    <!-- Title / Check badge -->
+    <g transform="translate(20, 16)">
+      <rect x="0" y="0" width="138" height="22" rx="4" fill="#16A34A" />
+      <text x="69" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">渲染判定时机</text>
+      <text x="148" y="16" class="box-head" fill="#166534">判定当前轮次是否具有「渲染机会（Rendering Opportunity）」？（约每 16.6ms / VSync）</text>
+    </g>
+
+    <!-- Branch A: No render -->
+    <g transform="translate(20, 52)">
+      <rect width="180" height="124" rx="6" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1" />
+      <text x="14" y="24" class="box-head" fill="#DC2626">❌ 否（无需刷新/后台隐藏）</text>
+      <text x="14" y="48" class="box-desc">当前时钟未达到屏幕刷新周期，或页面在后台 Tab：</text>
+      <g transform="translate(14, 76)">
+        <rect width="152" height="32" rx="4" fill="#FEF2F2" />
+        <text x="76" y="20" text-anchor="middle" class="box-chip" fill="#B91C1C">跳过渲染 → 开启下轮</text>
+      </g>
+    </g>
+
+    <!-- Branch B: Render Steps -->
+    <g transform="translate(216, 52)">
+      <rect width="430" height="124" rx="6" fill="#FFFFFF" stroke="#86EFAC" stroke-width="1" />
+      <text x="14" y="24" class="box-head" fill="#15803D">✅ 是（屏幕到达垂直同步信号 VSync 窗口）</text>
+      
+      <g transform="translate(14, 38)">
+        <!-- Step 1: Events -->
+        <rect x="0" y="0" width="94" height="68" rx="4" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1" />
+        <text x="47" y="20" text-anchor="middle" class="box-chip" fill="#166534">1. 视口事件</text>
+        <text x="47" y="40" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#4B5563">UI Events</text>
+        <text x="47" y="56" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#6B7280">scroll / resize</text>
+
+        <!-- Arrow -->
+        <path d="M 98 34 L 108 34" class="arrow" marker-end="url(#arr-gray)" />
+
+        <!-- Step 2: rAF -->
+        <rect x="112" y="0" width="102" height="68" rx="4" fill="#DCFCE7" stroke="#4ADE80" stroke-width="1.5" />
+        <text x="163" y="20" text-anchor="middle" class="box-chip" fill="#15803D">2. 执行 rAF</text>
+        <text x="163" y="40" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#166534">requestAnimation</text>
+        <text x="163" y="56" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#15803D">Frame 回调</text>
+
+        <!-- Arrow -->
+        <path d="M 218 34 L 228 34" class="arrow" marker-end="url(#arr-gray)" />
+
+        <!-- Step 3: Render Pipe -->
+        <rect x="232" y="0" width="170" height="68" rx="4" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1" />
+        <text x="317" y="20" text-anchor="middle" class="box-chip" fill="#166534">3. 启动渲染流水线</text>
+        <text x="317" y="40" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#166534">Style → Layout → Paint</text>
+        <text x="317" y="56" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#15803D">Composite 图层合成上屏</text>
+      </g>
+    </g>
+
+    <!-- Branch C: Idle Callback -->
+    <g transform="translate(660, 52)">
+      <rect width="142" height="124" rx="6" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1" />
+      <text x="14" y="24" class="box-head" fill="#0D9488">空闲期 (Idle)</text>
+      <text x="14" y="46" class="box-desc">本帧完成渲染后仍有剩余时间：</text>
+      <g transform="translate(10, 68)">
+        <rect width="122" height="42" rx="4" fill="#CCFBF1" />
+        <text x="61" y="18" text-anchor="middle" class="box-chip" fill="#0F766E">requestIdle</text>
+      </g>
+    </g>
+    <!-- Arrow from Step 3 (Composite) to Branch C (Idle) -->
+    <path d="M 646 114 L 656 114" class="arrow" marker-end="url(#arr-gray)" />
+  </g>
+
+  <!-- Downward Arrow from Microtask Queue into Rendering Check -->
+  <path d="M 728 270 L 728 302" class="arrow-accent" stroke="#9333EA" stroke-width="2.2" marker-end="url(#arr-accent)" />
+  <rect x="670" y="278" width="116" height="18" rx="3" fill="#FAF5FF" stroke="#C084FC" />
+  <text x="728" y="291" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#7E22CE">微任务清空 ──►</text>
+
+  <!-- Branch A exit to loop-back -->
+  <path d="M 128 481 L 128 518" class="arrow" stroke="#B4530A" stroke-width="1.8" />
+
+  <!-- Unified Loop Back: From Rendering / Idle completion back to Macrotask Queue -->
+  <path d="M 763 481 L 763 518 L 24 518 Q 14 518 14 508 L 14 196 Q 14 186 24 186 L 30 186" class="arrow-accent" stroke="#B4530A" stroke-width="2.2" stroke-dasharray="6 3" marker-end="url(#arr-accent)" />
+  <text x="440" y="532" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">◄── 单轮 Tick 调度完毕，返回宏任务队列开启下一轮事件循环 ◄──</text>
+</svg>

@@ -85,6 +85,7 @@ main.article { padding-bottom: 8px }
 .article table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 13.5px }
 .article th, .article td { border: 1px solid var(--line); padding: 7px 12px; text-align: left }
 .article th { background: var(--paper-2) }
+.article img { display: block; max-width: 100%; height: auto; margin: 22px auto; border-radius: 8px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-subtle) }
 
 /* ---------- 代码块与复制按钮 ----------
    结构由 src/utils/markdown.js 的 renderer.code() 生成：一个 .code-block 里放
@@ -140,32 +141,44 @@ main.article { padding-bottom: 8px }
 .qrow .tags span { font-size: 12px; color: var(--ink-3) }
 
 .footnav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 38px 0 12px }
-.footnav a { border: 1px solid var(--ink); border-radius: 10px; padding: 14px 18px; transition: background .15s ease, transform .15s ease }
-.footnav a:hover { background: var(--paper-2); transform: translateY(-1px) }
-.footnav .t { font-size: 13.5px; font-weight: 600; line-height: 1.5 }
-.footnav .dir { display: block; font-size: 12px; color: var(--ink-3); letter-spacing: .15em; margin-top: 6px }
+.footnav a {
+  background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px;
+  box-shadow: var(--shadow-subtle);
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.footnav a:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-card); background: #fff }
+.footnav .t { font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--ink) }
+.footnav .dir { display: block; font-size: 12px; color: var(--ink-3); letter-spacing: .12em; margin-top: 6px }
 .footnav .next { text-align: right }
 .footnav .next .t { color: var(--accent) }
-.footnav a.dis { color: var(--ink-3); border-style: dashed; pointer-events: none }
+.footnav a.dis { color: var(--ink-3); border-color: var(--line); border-style: dashed; pointer-events: none; box-shadow: none; background: transparent }
+.footnav a.dis .t { color: var(--ink-3) }
 
 .cta-line { margin: 22px 0 0 }
 .cta-line a { display: inline-block; background: var(--accent); color: #fff; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 500 }
 .cta-line a:hover { filter: brightness(1.06) }
 
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 14px; margin: 18px 0 0 }
-.card-grid a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; background: #fff; color: inherit; transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease }
-.card-grid a:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(28, 26, 23, 0.05) }
-.card-grid h3 { font-family: var(--serif); font-size: 16.5px; font-weight: 700; margin: 0 0 6px }
-.card-grid p { font-size: 13px; color: var(--ink-3); line-height: 1.7; margin: 0 0 10px }
-.card-grid .f { font-size: 12.5px; color: var(--accent) }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 16px; margin: 18px 0 0 }
+.card-grid a {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px;
+  background: #fff; color: inherit; box-shadow: var(--shadow-subtle);
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.card-grid a:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-hover) }
+.card-grid h3 { font-family: var(--serif); font-size: 17px; font-weight: 700; line-height: 1.45; margin: 0 0 8px }
+.card-grid p { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; margin: 0 0 12px }
+.card-grid p:last-child { margin-bottom: 0 }
+.card-grid .f { font-size: 12.5px; color: var(--accent); font-weight: 500; line-height: 1.4; margin-top: auto }
 
 .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0 }
 .chips a {
-  border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px;
-  font-size: 13.5px; color: var(--ink-2); background: #fff;
-  transition: border-color .15s ease, color .15s ease, transform .15s ease;
+  border: 1px solid var(--line); border-radius: 999px; padding: 7px 18px;
+  font-size: 13.5px; line-height: 1.5; font-weight: 500; color: var(--ink-2); background: #fff;
+  box-shadow: var(--shadow-subtle);
+  transition: border-color .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
-.chips a:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px) }
+.chips a:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-card) }
 
 /* ---------- 首页 ---------- */
 /* 标题上方的 kicker 栏目名已下线（2026-10-07）：面包屑与 h1 已经说明位置，

@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="100%" height="auto">
+  <defs>
+    <style>
+      .bg { fill: #FAF9F6; }
+      .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #1C1A17; }
+      .text-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; font-size: 12.5px; fill: #57534E; }
+      .code-font { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 11px; }
+      .stage-card { rx: 8px; stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.03)); }
+      .step-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10.5px; font-weight: 700; }
+      .arrow { stroke: #A8A29E; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .hook-chip { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+    </style>
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#A8A29E" />
+    </marker>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#B4530A" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="540" fill="#FAF9F6" rx="12" />
+  <rect x="1" y="1" width="878" height="538" fill="none" stroke="#E7E5E0" stroke-width="1.5" rx="11" />
+
+  <!-- Header -->
+  <g transform="translate(32, 24)">
+    <rect x="0" y="0" width="144" height="22" rx="4" fill="#F6E8DC" />
+    <text x="72" y="15" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#B4530A">Tapable 事件流微内核</text>
+    <text x="0" y="44" class="text-title">Webpack 编译生命周期与 Tapable 架构全景拓扑图</text>
+    <text x="0" y="64" class="text-sub">从配置初始化、NormalModule 依赖构建 (Make)，到分包密封 (Seal) 与资源发射 (Emit) 全链路</text>
+  </g>
+
+  <!-- 4-Stage Sequential Pipeline -->
+  <g transform="translate(32, 105)">
+    <!-- Stage 1: Initialize -->
+    <g transform="translate(0, 0)">
+      <rect width="194" height="255" class="stage-card" fill="#FFFFFF" stroke="#93C5FD" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#2563EB" />
+      <text x="42" y="25" text-anchor="middle" class="step-tag" fill="#FFFFFF">阶段 1</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#1E40AF">1. 初始化与环境</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">合并 options 配置与插件</text>
+
+      <!-- Hook items -->
+      <g transform="translate(10, 78)">
+        <rect width="174" height="26" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="17" class="hook-chip" fill="#1D4ED8">environment</text>
+      </g>
+      <g transform="translate(10, 110)">
+        <rect width="174" height="26" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="17" class="hook-chip" fill="#1D4ED8">afterEnvironment</text>
+      </g>
+      <g transform="translate(10, 142)">
+        <rect width="174" height="26" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="17" class="hook-chip" fill="#1D4ED8">entryOption (解析入口)</text>
+      </g>
+      <g transform="translate(10, 174)">
+        <rect width="174" height="26" rx="4" fill="#EFF6FF" stroke="#DBEAFE" />
+        <text x="8" y="17" class="hook-chip" fill="#1D4ED8">initialize (就绪)</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">创建全局唯一的 Compiler</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#64748B">注册全部 plugins 的 apply()</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <path d="M 198 128 L 206 128" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Stage 2: Compile & Make -->
+    <g transform="translate(210, 0)">
+      <rect width="198" height="255" class="stage-card" fill="#FFFFFF" stroke="#FDBA74" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#EA580C" />
+      <text x="42" y="25" text-anchor="middle" class="step-tag" fill="#FFFFFF">阶段 2</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#9A3412">2. 构建模块图 (Make)</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">从 Entry 递归扫描所有依赖</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="178" height="26" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="17" class="hook-chip" fill="#C2410C">compile / thisCompilation</text>
+      </g>
+      <g transform="translate(10, 110)">
+        <rect width="178" height="26" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="17" class="hook-chip" fill="#C2410C">make (核心构建循环)</text>
+      </g>
+      <g transform="translate(10, 142)">
+        <rect width="178" height="26" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="17" class="hook-chip" fill="#C2410C">Loader 管道 (Pitch ──► Normal)</text>
+      </g>
+      <g transform="translate(10, 174)">
+        <rect width="178" height="26" rx="4" fill="#FFF7ED" stroke="#FED7AA" />
+        <text x="8" y="17" class="hook-chip" fill="#C2410C">Acorn 解析 AST 提取 import</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#EA580C">产出：ModuleGraph (依赖图)</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#78716C">所有文件均被转译为 JS 模块</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <path d="M 412 128 L 420 128" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Stage 3: Seal & Optimize -->
+    <g transform="translate(424, 0)">
+      <rect width="194" height="255" class="stage-card" fill="#FFFFFF" stroke="#C084FC" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#9333EA" />
+      <text x="42" y="25" text-anchor="middle" class="step-tag" fill="#FFFFFF">阶段 3</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#6B21A8">3. 密封与优化 (Seal)</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">依赖图定型，拆包与剔除死代码</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="174" height="26" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="17" class="hook-chip" fill="#7E22CE">seal (冻结模块图)</text>
+      </g>
+      <g transform="translate(10, 110)">
+        <rect width="174" height="26" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="17" class="hook-chip" fill="#7E22CE">optimizeModules (TreeShaking)</text>
+      </g>
+      <g transform="translate(10, 142)">
+        <rect width="174" height="26" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="17" class="hook-chip" fill="#7E22CE">optimizeChunks (SplitChunks)</text>
+      </g>
+      <g transform="translate(10, 174)">
+        <rect width="174" height="26" rx="4" fill="#FAF5FF" stroke="#E9D5FF" />
+        <text x="8" y="17" class="hook-chip" fill="#7E22CE">hash / createModuleHashes</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#7E22CE">产出：ChunkGraph (分块图)</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#78716C">模块被组织进不同 chunk</text>
+    </g>
+
+    <!-- Arrow 3 -> 4 -->
+    <path d="M 622 128 L 630 128" class="arrow" marker-end="url(#arr-gray)" />
+
+    <!-- Stage 4: Emit & Output -->
+    <g transform="translate(634, 0)">
+      <rect width="182" height="255" class="stage-card" fill="#FFFFFF" stroke="#86EFAC" />
+      <rect x="12" y="12" width="60" height="18" rx="3" fill="#16A34A" />
+      <text x="42" y="25" text-anchor="middle" class="step-tag" fill="#FFFFFF">阶段 4</text>
+      <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#166534">4. 资源生成 (Emit)</text>
+      <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" fill="#57534E">渲染模板，输出至目标目录</text>
+
+      <g transform="translate(10, 78)">
+        <rect width="162" height="26" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="17" class="hook-chip" fill="#15803D">processAssets (改/加文件)</text>
+      </g>
+      <g transform="translate(10, 110)">
+        <rect width="162" height="26" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="17" class="hook-chip" fill="#15803D">emit (写盘临界点)</text>
+      </g>
+      <g transform="translate(10, 142)">
+        <rect width="162" height="26" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="17" class="hook-chip" fill="#15803D">afterEmit (写盘完毕)</text>
+      </g>
+      <g transform="translate(10, 174)">
+        <rect width="162" height="26" rx="4" fill="#F0FDF4" stroke="#BBF7D0" />
+        <text x="8" y="17" class="hook-chip" fill="#15803D">done (构建圆满成功)</text>
+      </g>
+
+      <text x="12" y="222" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="700" fill="#15803D">产出：compilation.assets</text>
+      <text x="12" y="238" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" fill="#78716C">落盘至 dist/bundle.js</text>
+    </g>
+  </g>
+
+  <!-- Bottom: Core Concepts Comparison (Compiler vs Compilation) -->
+  <g transform="translate(32, 380)">
+    <!-- Compiler Box -->
+    <g transform="translate(0, 0)">
+      <rect width="400" height="135" rx="8" fill="#FFFFFF" stroke="#93C5FD" stroke-width="1.5" />
+      <rect x="14" y="12" width="72" height="20" rx="4" fill="#2563EB" />
+      <text x="50" y="26" text-anchor="middle" class="step-tag" fill="#FFFFFF">全局总控</text>
+      <text x="96" y="27" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#1E40AF">Compiler 对象（构建全程唯一单例）</text>
+      
+      <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#475569">职责：代表 Webpack 从启动到退出的完整环境生命周期。</text>
+      <text x="14" y="70" class="code-font" fill="#1D4ED8">• 掌管全局配置 options、outputFileSystem、输入监听 FileWatcher</text>
+      <text x="14" y="86" class="code-font" fill="#1D4ED8">• 暴露 compile / emit / done 等宏观全局生命周期钩子</text>
+      <text x="14" y="102" class="code-font" fill="#1D4ED8">• 在 watch 模式下不销毁，每次文件改动仅触发一次新的 compilation！</text>
+      <text x="14" y="120" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#2563EB">插件规范：apply(compiler) 在此注册全局监听</text>
+    </g>
+
+    <!-- Compilation Box -->
+    <g transform="translate(416, 0)">
+      <rect width="400" height="135" rx="8" fill="#FFFFFF" stroke="#86EFAC" stroke-width="1.5" />
+      <rect x="14" y="12" width="72" height="20" rx="4" fill="#16A34A" />
+      <text x="50" y="26" text-anchor="middle" class="step-tag" fill="#FFFFFF">单次快照</text>
+      <text x="96" y="27" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#166534">Compilation 对象（单次编译版本实例）</text>
+      
+      <text x="14" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" fill="#475569">职责：代表当前这一次具体构建过程的全部数据与状态图谱。</text>
+      <text x="14" y="70" class="code-font" fill="#15803D">• 包含当前的 ModuleGraph、ChunkGraph、已编译的模块缓存</text>
+      <text x="14" y="86" class="code-font" fill="#15803D">• compilation.assets 记录待写盘的资源清单对象字典</text>
+      <text x="14" y="102" class="code-font" fill="#15803D">• 暴露出细粒度微观钩子：buildModule, optimizeChunks, processAssets</text>
+      <text x="14" y="120" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="700" fill="#16A34A">插件修改产物：在 processAssets 钩子中覆写 compilation.assets</text>
+    </g>
+  </g>
+</svg>

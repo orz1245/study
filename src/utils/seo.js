@@ -155,12 +155,11 @@ function sampleQuestions(list, n = 2) {
 // ---------- 各类页面的 head ----------
 
 export function homeSeo() {
-  const featured = courses.slice(0, 4).map((c) => c.meta.title).join('、')
   return {
-    title: `${SITE_NAME} - 前端面试题库与前端系统课程`,
-    description: `${TOTAL_QUESTIONS} 道前端面试题按 JavaScript、CSS、TypeScript、React、Vue、浏览器原理、工程化、算法与 Node 等 ${TOTAL_CATEGORIES} 个方向整理，每题附完整答案；另有 ${TOTAL_COURSES} 门前端系统课程（${featured} 等）共 ${TOTAL_LESSONS} 节，每节都配可运行的代码和课后练习。`,
+    title: `${SITE_NAME} - 打穿底层链路，通透技术面试 | 前端系统课程与面试题库`,
+    description: '一边是以真实工业场景为蓝本的系统级进阶课程，一边是附带深度解析与掌握度标记的高频真题库。告别碎片化八股，用纯原生可运行代码和底层系统原理，建立你不可替代的核心技术壁垒。',
     keywords: mergeKeywords(
-      ['前端学习网', '前端面试题库', '前端系统课程', '前端教程', '前端学习路线'],
+      ['前端学习网', '打穿底层链路', '通透技术面试', '前端面试题库', '前端系统课程', '前端教程', '前端学习路线'],
       SITE_KEYWORDS,
       ['JavaScript面试题', 'TypeScript面试题', 'CSS面试题', '浏览器原理', '前端工程化', '前端算法题', '手写代码']
     ),
